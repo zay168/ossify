@@ -19,15 +19,17 @@
   </defs>
 
   <rect width="1600" height="720" rx="36" fill="url(#bg)"/>
-  <rect width="1600" height="720" rx="36" fill="url(#glowA)"/>
-  <rect width="1600" height="720" rx="36" fill="url(#glowB)"/>
+  <rect width="1600" height="720" rx="36" fill="url(#glowA)" opacity="0.92">
+    <animate attributeName="opacity" values="0.92;1;0.92" dur="14s" repeatCount="indefinite"/>
+  </rect>
+  <rect width="1600" height="720" rx="36" fill="url(#glowB)" opacity="0.88">
+    <animate attributeName="opacity" values="0.88;0.98;0.88" dur="18s" repeatCount="indefinite"/>
+  </rect>
 
   <rect x="64" y="64" width="1472" height="592" rx="28" fill="#FFFDF9" fill-opacity="0.82" stroke="#CDD9E6"/>
 
   <rect x="118" y="120" width="188" height="34" rx="17" fill="#F3EEE6" stroke="#D4C3B0"/>
-  <circle cx="142" cy="137" r="5" fill="#19A396">
-    <animate attributeName="opacity" values="1;0.4;1" dur="2.2s" repeatCount="indefinite"/>
-  </circle>
+  <circle cx="142" cy="137" r="5" fill="#19A396"/>
   <text x="160" y="143" fill="#465B76" font-family="Georgia, serif" font-size="15" letter-spacing="2.6">OPEN SOURCE HYGIENE</text>
 
   <text x="118" y="250" fill="#1C2C41" font-family="Georgia, serif" font-size="82" font-weight="700">Turn rough repos</text>
@@ -39,9 +41,7 @@
 
   <rect x="118" y="452" width="560" height="72" rx="20" fill="#F8F3EB" stroke="#D8CABB"/>
   <text x="148" y="497" fill="#177E95" font-family="'Courier New', monospace" font-size="23">$ ossify fix . --license mit</text>
-  <rect x="149" y="510" width="0" height="2.5" rx="1.25" fill="url(#line)">
-    <animate attributeName="width" values="0;360;360" dur="3.2s" repeatCount="indefinite"/>
-  </rect>
+  <rect x="149" y="510" width="360" height="2.5" rx="1.25" fill="url(#line)"/>
 
   <rect x="1010" y="142" width="398" height="274" rx="24" fill="#FBFAF6" stroke="#CDD9E6"/>
   <text x="1046" y="194" fill="#6B809B" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="17" letter-spacing="2">READINESS SCORE</text>
@@ -56,7 +56,5 @@
   <text x="1046" y="538" fill="#1C2C41" font-family="Georgia, serif" font-size="38" font-weight="700">score. scaffold. ship.</text>
 
   <path d="M118 586H512" stroke="#CDD9E6" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="118" cy="586" r="7" fill="#19A396">
-    <animate attributeName="cx" values="118;512;118" dur="6s" repeatCount="indefinite"/>
-  </circle>
+  <circle cx="118" cy="586" r="7" fill="#19A396"/>
 </svg>
