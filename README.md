@@ -8,68 +8,31 @@
 
 <h1 align="center">ossify</h1>
 
-<p align="center"><strong>Turn rough repositories into projects people trust at first glance.</strong></p>
+<p align="center"><strong>Make a repository feel trustworthy before people judge it.</strong></p>
 
 <p align="center">
-  Audit the public face of a repo, score what matters, then scaffold the missing trust signals before launch day.
+  Audit what matters. Fix what is missing. Ship a cleaner open source surface.
 </p>
 
 <p align="center">
-  <a href="https://github.com/zay168/ossify/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/zay168/ossify?style=for-the-badge&label=stars&labelColor=101820&color=f6b73c"></a>
-  <a href="https://github.com/zay168/ossify/blob/main/LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/license-MIT-0f172a?style=for-the-badge&labelColor=101820&color=7dd3fc"></a>
-  <a href="https://www.rust-lang.org/"><img alt="Built with Rust" src="https://img.shields.io/badge/built%20with-Rust-0f172a?style=for-the-badge&labelColor=101820&color=e78b5a"></a>
-  <a href="https://github.com/zay168/ossify/actions/workflows/ci.yml"><img alt="CI status" src="https://img.shields.io/github/actions/workflow/status/zay168/ossify/ci.yml?branch=main&style=for-the-badge&label=CI&labelColor=101820&color=a3e635"></a>
-  <img alt="JSON output" src="https://img.shields.io/badge/output-human%20%2B%20json-0f172a?style=for-the-badge&labelColor=101820&color=c4b5fd">
+  <a href="https://github.com/zay168/ossify/blob/main/LICENSE"><img alt="License MIT" src="https://img.shields.io/badge/license-MIT-0f172a?style=flat-square&labelColor=0f172a&color=7dd3fc"></a>
+  <a href="https://github.com/zay168/ossify/actions/workflows/ci.yml"><img alt="CI status" src="https://img.shields.io/github/actions/workflow/status/zay168/ossify/ci.yml?branch=main&style=flat-square&label=CI&labelColor=0f172a&color=a3e635"></a>
+  <img alt="JSON output" src="https://img.shields.io/badge/output-human%20%2B%20json-0f172a?style=flat-square&labelColor=0f172a&color=c4b5fd">
 </p>
 
-<p align="center">
-  <code>ossify audit .</code>
-  <span>&nbsp;&nbsp;->&nbsp;&nbsp;</span>
-  <code>ossify fix . --license mit --owner "Acme Maintainers"</code>
-</p>
+<p align="center"><code>ossify audit .</code> <span>&nbsp;&nbsp;->&nbsp;&nbsp;</span> <code>ossify fix . --license mit --owner "Acme Maintainers"</code></p>
 
-> Most repositories do not need more configuration. They need a better first impression.
+## Why
 
-## The pitch
+`ossify` focuses on the trust layer of a repository:
 
-`ossify` is for maintainers who want their project to look serious fast.
+- license clarity
+- contributor guidance
+- issue and pull request templates
+- security and changelog basics
+- CI and release hygiene
 
-It does not try to be a monolithic platform. It focuses on the layer people actually judge in the first minute:
-
-- is there a clear license
-- can contributors understand the rules of the road
-- do issue and PR templates create signal instead of chaos
-- does the repo feel maintained, shippable, and safe to touch
-
-That makes `ossify` an easy open source sell:
-
-- solo maintainers get an instant polish pass
-- teams can standardize repository hygiene across stacks
-- bots and CI can consume the JSON output
-- GitHub releases can ship ready-to-download binaries
-
-<p align="center">
-  <img alt="Animated ossify pipeline from audit to fix to release" src="./assets/brand/command-flow.svg" width="100%">
-</p>
-
-## Why it feels different
-
-| Credibility layer | Contributor runway | Shipping signal |
-| --- | --- | --- |
-| README, license, security policy, changelog, code of conduct | Contributing guide, issue templates, PR template | CI workflow, release packaging, JSON output for automation |
-
-| Opinionated enough to help | Light enough to trust | Brand-ready |
-| --- | --- | --- |
-| The score makes missing pieces obvious without drowning maintainers in noise. | The generated files are readable starter docs, not generic placeholder sludge. | The README, CLI output, and release workflow already position the repo like a product. |
-
-## Day-one transformation
-
-| Before `ossify` | After `ossify fix` |
-| --- | --- |
-| Repo looks promising but unfinished | Repo looks intentional and contributor-friendly |
-| Important trust files are missing | Core health files are scaffolded in one pass |
-| Manual copy-paste from old projects | Consistent repository setup you can repeat |
-| Hard to automate in CI | `--json` output fits bots and policy checks |
+The goal is simple: help a repo look maintained, understandable, and safe to contribute to.
 
 ## Commands
 
@@ -89,9 +52,7 @@ Global flags:
 --no-color
 ```
 
-If you run `ossify` without arguments, it audits the current directory.
-
-## A taste of the output
+## Example
 
 ```text
 > ossify audit .
@@ -107,17 +68,11 @@ Healthy
 
 Missing or weak
   [missing] Contributing guide (+10, autofixable)
-           Document the workflow for contributors and new maintainers.
   [missing] Code of conduct (+10, autofixable)
-           Signal healthy community standards from day one.
   [missing] Security policy (+10, autofixable)
-           Tell users how to report vulnerabilities responsibly.
   [missing] Issue templates (+8, autofixable)
-           Issue templates raise bug report quality fast.
   [missing] Pull request template (+7, autofixable)
-           A good PR template keeps reviews focused.
   [missing] CI workflow (+7, autofixable)
-           Automation increases confidence in the project.
 
 Next move
   ossify fix . --license mit --owner "Acme Maintainers"
@@ -129,7 +84,7 @@ Next move
 {"command":"fix","target":"C:\\repo","before_score":47,"after_score":95,"score_delta":48}
 ```
 
-## What gets scaffolded
+## What it scaffolds
 
 - `README.md`
 - `LICENSE`
@@ -142,13 +97,13 @@ Next move
 - `.github/PULL_REQUEST_TEMPLATE.md`
 - `.github/workflows/ci.yml`
 
-## Release-ready by default
+## Release-ready
 
-This repo ships with:
+The repository already includes:
 
-- a CI workflow for `cargo check` and `cargo test`
-- a release workflow that packages binaries for Linux, macOS, and Windows
-- a README built like a product page, not a scratchpad
+- CI for `cargo check` and `cargo test`
+- GitHub release packaging for Linux, macOS, and Windows
+- theme-aware README artwork that stays restrained and readable
 
 Once Rust is installed:
 
@@ -162,17 +117,8 @@ cargo run -- fix . --license mit --owner "Acme Maintainers"
 
 - `ossify fix --check` for CI gatekeeping without writing files
 - presets for libraries, CLIs, SDKs, and SaaS repos
-- README score badges for proud maintainers
+- score badges for README integration
 - GitHub and GitLab-specific hygiene packs
-- AI-assisted README and release note refinement
-
-## Brand kit
-
-The README artwork lives in [`assets/brand`](./assets/brand):
-
-- theme-aware animated hero banners
-- an animated pipeline strip
-- a visual foundation that can be reused for a future landing page or social preview
 
 ## Notes
 
