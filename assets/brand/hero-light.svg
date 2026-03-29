@@ -1,56 +1,40 @@
-<svg width="1600" height="720" viewBox="0 0 1600 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg width="1600" height="640" viewBox="0 0 1600 640" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg" x1="160" y1="40" x2="1460" y2="680" gradientUnits="userSpaceOnUse">
+    <linearGradient id="bg" x1="180" y1="20" x2="1420" y2="620" gradientUnits="userSpaceOnUse">
       <stop stop-color="#FFF8EF"/>
       <stop offset="1" stop-color="#EEF4FB"/>
     </linearGradient>
-    <radialGradient id="glowA" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1220 140) rotate(128) scale(420 340)">
-      <stop stop-color="#54C9BC" stop-opacity="0.18"/>
+    <radialGradient id="glowA" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1270 120) rotate(135) scale(360 260)">
+      <stop stop-color="#54C9BC" stop-opacity="0.15"/>
       <stop offset="1" stop-color="#54C9BC" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="glowB" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(280 610) rotate(-24) scale(500 260)">
-      <stop stop-color="#E59A54" stop-opacity="0.16"/>
+    <radialGradient id="glowB" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(320 560) rotate(-12) scale(440 180)">
+      <stop stop-color="#E59A54" stop-opacity="0.12"/>
       <stop offset="1" stop-color="#E59A54" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="line" x1="0" y1="0" x2="380" y2="0" gradientUnits="userSpaceOnUse">
+    <linearGradient id="accent" x1="0" y1="0" x2="420" y2="0" gradientUnits="userSpaceOnUse">
       <stop stop-color="#19A396"/>
       <stop offset="1" stop-color="#D68C44"/>
     </linearGradient>
   </defs>
 
-  <rect width="1600" height="720" rx="36" fill="url(#bg)"/>
-  <rect width="1600" height="720" rx="36" fill="url(#glowA)" opacity="0.92"/>
-  <rect width="1600" height="720" rx="36" fill="url(#glowB)" opacity="0.88"/>
+  <rect width="1600" height="640" rx="36" fill="url(#bg)"/>
+  <rect width="1600" height="640" rx="36" fill="url(#glowA)"/>
+  <rect width="1600" height="640" rx="36" fill="url(#glowB)"/>
+  <rect x="52" y="52" width="1496" height="536" rx="28" stroke="#D0DAE6"/>
 
-  <rect x="64" y="64" width="1472" height="592" rx="28" fill="#FFFDF9" fill-opacity="0.82" stroke="#CDD9E6"/>
+  <rect x="128" y="112" width="184" height="34" rx="17" fill="#F5EEE5" stroke="#D7C6B2"/>
+  <circle cx="152" cy="129" r="4.5" fill="#19A396"/>
+  <text x="170" y="135" fill="#455A75" font-family="Georgia, serif" font-size="15" letter-spacing="2.4">OPEN SOURCE HYGIENE</text>
 
-  <rect x="118" y="120" width="188" height="34" rx="17" fill="#F3EEE6" stroke="#D4C3B0"/>
-  <circle cx="142" cy="137" r="5" fill="#19A396"/>
-  <text x="160" y="143" fill="#465B76" font-family="Georgia, serif" font-size="15" letter-spacing="2.6">OPEN SOURCE HYGIENE</text>
+  <text x="128" y="250" fill="#1B2C40" font-family="Georgia, serif" font-size="86" font-weight="700">Make repositories feel ready</text>
+  <text x="128" y="330" fill="#1B2C40" font-family="Georgia, serif" font-size="86" font-weight="700">before anyone reads the code.</text>
 
-  <text x="118" y="250" fill="#1C2C41" font-family="Georgia, serif" font-size="82" font-weight="700">Turn rough repos</text>
-  <text x="118" y="328" fill="#1C2C41" font-family="Georgia, serif" font-size="82" font-weight="700">into projects people trust.</text>
-
-  <text x="120" y="392" fill="#5B708C" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="28">
-    Audit the surface. Fix the missing signals. Keep the first impression clean.
+  <text x="130" y="404" fill="#5D718D" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="30">
+    Audit what matters. Fix what is missing. Keep the first impression clean.
   </text>
 
-  <rect x="118" y="452" width="560" height="72" rx="20" fill="#F8F3EB" stroke="#D8CABB"/>
-  <text x="148" y="497" fill="#177E95" font-family="'Courier New', monospace" font-size="23">$ ossify fix . --license mit</text>
-  <rect x="149" y="510" width="360" height="2.5" rx="1.25" fill="url(#line)"/>
-
-  <rect x="1010" y="142" width="398" height="274" rx="24" fill="#FBFAF6" stroke="#CDD9E6"/>
-  <text x="1046" y="194" fill="#6B809B" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="17" letter-spacing="2">READINESS SCORE</text>
-  <text x="1046" y="292" fill="#1C2C41" font-family="Georgia, serif" font-size="128" font-weight="700">100</text>
-  <text x="1228" y="288" fill="#7C93AF" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="30">/100</text>
-  <rect x="1048" y="326" width="264" height="12" rx="6" fill="#E5DDD1"/>
-  <rect x="1048" y="326" width="264" height="12" rx="6" fill="url(#line)"/>
-  <text x="1048" y="374" fill="#5B708C" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="22">ready to open-source</text>
-
-  <rect x="1010" y="444" width="398" height="128" rx="24" fill="#FBFAF6" stroke="#CDD9E6"/>
-  <text x="1046" y="494" fill="#6B809B" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="17" letter-spacing="2">FOCUS</text>
-  <text x="1046" y="538" fill="#1C2C41" font-family="Georgia, serif" font-size="38" font-weight="700">score. scaffold. ship.</text>
-
-  <path d="M118 586H512" stroke="#CDD9E6" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="118" cy="586" r="7" fill="#19A396"/>
+  <rect x="128" y="466" width="420" height="3" rx="1.5" fill="url(#accent)"/>
+  <text x="128" y="520" fill="#177E95" font-family="'Courier New', monospace" font-size="24">$ ossify fix . --license mit</text>
+  <text x="128" y="560" fill="#647994" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="23">score. scaffold. ship.</text>
 </svg>
