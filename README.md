@@ -1,11 +1,3 @@
-<p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./assets/brand/hero-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="./assets/brand/hero-light.svg">
-    <img alt="ossify hero banner" src="./assets/brand/hero-light.svg" width="100%">
-  </picture>
-</p>
-
 <h1 align="center">ossify</h1>
 
 <p align="center"><strong>Make a repository feel trustworthy before people judge it.</strong></p>
