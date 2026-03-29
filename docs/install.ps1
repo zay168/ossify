@@ -9,7 +9,42 @@ $ErrorActionPreference = "Stop"
 $repo = "zay168/ossify"
 $assetName = "ossify-x86_64-pc-windows-msvc.zip"
 
-$architecture = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString()
+function Get-OsArchitecture {
+    try {
+        $runtimeInformation = [System.Type]::GetType("System.Runtime.InteropServices.RuntimeInformation")
+        if ($runtimeInformation) {
+            $property = $runtimeInformation.GetProperty("OSArchitecture")
+            if ($property) {
+                $value = $property.GetValue($null, @())
+                if ($value) {
+                    return $value.ToString()
+                }
+            }
+        }
+    } catch {
+    }
+
+    if ([Environment]::Is64BitOperatingSystem) {
+        return "X64"
+    }
+
+    $architecture = $env:PROCESSOR_ARCHITEW6432
+    if ([string]::IsNullOrWhiteSpace($architecture)) {
+        $architecture = $env:PROCESSOR_ARCHITECTURE
+    }
+
+    if ([string]::IsNullOrWhiteSpace($architecture)) {
+        return "Unknown"
+    }
+
+    if ($architecture -match "64") {
+        return "X64"
+    }
+
+    return $architecture
+}
+
+$architecture = Get-OsArchitecture
 if ($architecture -ne "X64") {
     throw "This installer currently ships Windows builds for x64 only. Detected architecture: $architecture."
 }
