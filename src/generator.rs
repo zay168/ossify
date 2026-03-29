@@ -3,7 +3,8 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::audit::{audit_repository, AuditReport};
+use crate::audit::{audit_repository, AuditReport, CheckStatus};
+use crate::project::{detect_project, ProjectContext};
 use crate::templates;
 
 #[derive(Debug, Clone)]
@@ -80,6 +81,7 @@ pub struct GeneratedFile {
 pub struct InitReport {
     pub target: PathBuf,
     pub mode: ScaffoldMode,
+    pub project: ProjectContext,
     pub files: Vec<GeneratedFile>,
 }
 
@@ -107,6 +109,7 @@ pub fn fix_repository(path: &Path, options: &InitOptions) -> io::Result<FixRepor
         InitReport {
             target: before.target.clone(),
             mode: ScaffoldMode::Fix,
+            project: before.project.clone(),
             files: Vec::new(),
         }
     } else {
@@ -132,36 +135,26 @@ fn generate_files(
     fs::create_dir_all(path)?;
 
     let canonical = fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
-    let project_name = canonical
-        .file_name()
-        .and_then(|value| value.to_str())
-        .unwrap_or("my-project")
-        .to_owned();
+    let project = detect_project(&canonical)?;
     let year = current_year_fallback();
     let items = selection.items();
 
     let mut files = Vec::new();
     for item in items {
-        append_item_files(
-            &canonical,
-            &project_name,
-            year,
-            options,
-            item,
-            &mut files,
-        )?;
+        append_item_files(&canonical, &project, year, options, item, &mut files)?;
     }
 
     Ok(InitReport {
         target: canonical,
         mode,
+        project,
         files,
     })
 }
 
 fn append_item_files(
     root: &Path,
-    project_name: &str,
+    project: &ProjectContext,
     year: i32,
     options: &InitOptions,
     item: ScaffoldItem,
@@ -170,7 +163,7 @@ fn append_item_files(
     match item {
         ScaffoldItem::Readme => files.push(write_file(
             &root.join("README.md"),
-            &templates::readme(project_name),
+            &templates::readme(project),
             options.overwrite,
         )?),
         ScaffoldItem::License => files.push(write_file(
@@ -180,17 +173,17 @@ fn append_item_files(
         )?),
         ScaffoldItem::Contributing => files.push(write_file(
             &root.join("CONTRIBUTING.md"),
-            &templates::contributing(project_name),
+            &templates::contributing(project),
             options.overwrite,
         )?),
         ScaffoldItem::CodeOfConduct => files.push(write_file(
             &root.join("CODE_OF_CONDUCT.md"),
-            &templates::code_of_conduct(project_name),
+            &templates::code_of_conduct(&project.name),
             options.overwrite,
         )?),
         ScaffoldItem::Security => files.push(write_file(
             &root.join("SECURITY.md"),
-            &templates::security_policy(project_name),
+            &templates::security_policy(&project.name),
             options.overwrite,
         )?),
         ScaffoldItem::Changelog => files.push(write_file(
@@ -202,12 +195,12 @@ fn append_item_files(
             fs::create_dir_all(root.join(".github/ISSUE_TEMPLATE"))?;
             files.push(write_file(
                 &root.join(".github/ISSUE_TEMPLATE/bug_report.md"),
-                &templates::bug_report_template(project_name),
+                &templates::bug_report_template(&project.name),
                 options.overwrite,
             )?);
             files.push(write_file(
                 &root.join(".github/ISSUE_TEMPLATE/feature_request.md"),
-                &templates::feature_request_template(project_name),
+                &templates::feature_request_template(&project.name),
                 options.overwrite,
             )?);
         }
@@ -220,7 +213,7 @@ fn append_item_files(
             fs::create_dir_all(root.join(".github/workflows"))?;
             files.push(write_file(
                 &root.join(".github/workflows/ci.yml"),
-                &templates::ci_workflow(),
+                &templates::ci_workflow(project),
                 options.overwrite,
             )?);
         }
@@ -293,20 +286,14 @@ enum ScaffoldSelection {
 impl ScaffoldSelection {
     fn items(&self) -> Vec<ScaffoldItem> {
         match self {
-            Self::All | Self::AllFixable => vec![
-                ScaffoldItem::Readme,
-                ScaffoldItem::License,
-                ScaffoldItem::Contributing,
-                ScaffoldItem::CodeOfConduct,
-                ScaffoldItem::Security,
-                ScaffoldItem::Changelog,
-                ScaffoldItem::IssueTemplates,
-                ScaffoldItem::PullRequestTemplate,
-                ScaffoldItem::CiWorkflow,
-            ],
+            Self::All | Self::AllFixable => all_fixable_items(),
             Self::FromAudit(report) => {
                 let mut items = Vec::new();
-                for check in report.missing_checks() {
+                for check in &report.checks {
+                    if check.status != CheckStatus::Missing {
+                        continue;
+                    }
+
                     if let Some(item) = item_for_check(check.id) {
                         if !items.contains(&item) {
                             items.push(item);
@@ -317,6 +304,20 @@ impl ScaffoldSelection {
             }
         }
     }
+}
+
+fn all_fixable_items() -> Vec<ScaffoldItem> {
+    vec![
+        ScaffoldItem::Readme,
+        ScaffoldItem::License,
+        ScaffoldItem::Contributing,
+        ScaffoldItem::CodeOfConduct,
+        ScaffoldItem::Security,
+        ScaffoldItem::Changelog,
+        ScaffoldItem::IssueTemplates,
+        ScaffoldItem::PullRequestTemplate,
+        ScaffoldItem::CiWorkflow,
+    ]
 }
 
 fn item_for_check(id: &str) -> Option<ScaffoldItem> {

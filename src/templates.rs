@@ -1,23 +1,36 @@
 use crate::generator::LicenseKind;
+use crate::project::{ProjectContext, ProjectKind};
 
-pub fn readme(project_name: &str) -> String {
+pub fn readme(project: &ProjectContext) -> String {
     format!(
-        "# {project_name}\n\n\
-One-line value proposition for {project_name}.\n\n\
+        "# {}\n\n\
+{} is a {} project.\n\n\
 ## Why it exists\n\n\
-Explain the pain point this project solves and why someone should care.\n\n\
+Describe the core problem this project solves, who it is for, and what makes it worth adopting.\n\n\
 ## Install\n\n\
-Add installation instructions here.\n\n\
+```bash\n\
+{}\n\
+```\n\n\
 ## Usage\n\n\
 ```bash\n\
-{project_name} --help\n\
+{}\n\
+```\n\n\
+## Development\n\n\
+```bash\n\
+{}\n\
 ```\n\n\
 ## Contributing\n\n\
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request.\n\n\
 ## Security\n\n\
 Please report vulnerabilities according to [SECURITY.md](SECURITY.md).\n\n\
 ## License\n\n\
-This project is licensed under the terms described in [LICENSE](LICENSE).\n"
+This project is licensed under the terms described in [LICENSE](LICENSE).\n",
+        project.name,
+        project.name,
+        project.kind.display_name(),
+        project.install_snippet(),
+        project.usage_snippet(),
+        project.test_snippet(),
     )
 }
 
@@ -28,9 +41,9 @@ pub fn license_text(kind: LicenseKind, owner: &str, year: i32) -> String {
     }
 }
 
-pub fn contributing(project_name: &str) -> String {
+pub fn contributing(project: &ProjectContext) -> String {
     format!(
-        "# Contributing to {project_name}\n\n\
+        "# Contributing to {}\n\n\
 Thanks for considering a contribution.\n\n\
 ## Ground rules\n\n\
 - Be respectful and constructive.\n\
@@ -39,12 +52,15 @@ Thanks for considering a contribution.\n\n\
 ## Development flow\n\n\
 1. Fork the repository.\n\
 2. Create a focused branch.\n\
-3. Add or update tests when behavior changes.\n\
-4. Open a pull request with context, screenshots, or logs when helpful.\n\n\
+3. Run the main verification command: `{}`.\n\
+4. Open a pull request with context, tradeoffs, and follow-up notes when helpful.\n\n\
 ## Pull request checklist\n\n\
 - The change solves one clear problem.\n\
 - Documentation was updated when needed.\n\
-- Tests were added or existing tests still make sense.\n"
+- Tests were added or existing tests still cover the behavior.\n\
+- The branch is focused and reviewable.\n",
+        project.name,
+        project.test_snippet(),
     )
 }
 
@@ -138,6 +154,8 @@ pub fn pull_request_template() -> String {
 Explain the change in a few lines.\n\n\
 ## Why it matters\n\n\
 Describe the user or maintainer impact.\n\n\
+## Validation\n\n\
+Describe what you tested locally and how reviewers can verify the change.\n\n\
 ## Checklist\n\n\
 - [ ] I tested the change\n\
 - [ ] I updated docs when needed\n\
@@ -145,9 +163,10 @@ Describe the user or maintainer impact.\n\n\
     )
 }
 
-pub fn ci_workflow() -> String {
-    String::from(
-        "name: CI\n\n\
+pub fn ci_workflow(project: &ProjectContext) -> String {
+    match project.kind {
+        ProjectKind::Rust => String::from(
+            "name: CI\n\n\
 on:\n\
   push:\n\
     branches: [main]\n\
@@ -164,8 +183,90 @@ jobs:\n\
       - name: Check\n\
         run: cargo check\n\
       - name: Test\n\
-        run: cargo test\n",
-    )
+        run: cargo test\n\
+      - name: Build\n\
+        run: cargo build --release\n",
+        ),
+        ProjectKind::Node => String::from(
+            "name: CI\n\n\
+on:\n\
+  push:\n\
+    branches: [main]\n\
+  pull_request:\n\n\
+jobs:\n\
+  build:\n\
+    runs-on: ubuntu-latest\n\
+    steps:\n\
+      - uses: actions/checkout@v4\n\
+      - name: Set up Node.js\n\
+        uses: actions/setup-node@v4\n\
+        with:\n\
+          node-version: 20\n\
+          cache: npm\n\
+      - name: Install dependencies\n\
+        run: npm install\n\
+      - name: Test\n\
+        run: npm test --if-present\n\
+      - name: Build\n\
+        run: npm run build --if-present\n",
+        ),
+        ProjectKind::Python => String::from(
+            "name: CI\n\n\
+on:\n\
+  push:\n\
+    branches: [main]\n\
+  pull_request:\n\n\
+jobs:\n\
+  build:\n\
+    runs-on: ubuntu-latest\n\
+    steps:\n\
+      - uses: actions/checkout@v4\n\
+      - name: Set up Python\n\
+        uses: actions/setup-python@v5\n\
+        with:\n\
+          python-version: '3.12'\n\
+      - name: Install project\n\
+        run: |\n\
+          python -m pip install --upgrade pip\n\
+          python -m pip install -e .\n\
+      - name: Test\n\
+        run: python -m pytest\n",
+        ),
+        ProjectKind::Go => String::from(
+            "name: CI\n\n\
+on:\n\
+  push:\n\
+    branches: [main]\n\
+  pull_request:\n\n\
+jobs:\n\
+  build:\n\
+    runs-on: ubuntu-latest\n\
+    steps:\n\
+      - uses: actions/checkout@v4\n\
+      - name: Set up Go\n\
+        uses: actions/setup-go@v5\n\
+        with:\n\
+          go-version: '1.23'\n\
+      - name: Test\n\
+        run: go test ./...\n\
+      - name: Build\n\
+        run: go build ./...\n",
+        ),
+        ProjectKind::Unknown => String::from(
+            "name: CI\n\n\
+on:\n\
+  push:\n\
+    branches: [main]\n\
+  pull_request:\n\n\
+jobs:\n\
+  verify:\n\
+    runs-on: ubuntu-latest\n\
+    steps:\n\
+      - uses: actions/checkout@v4\n\
+      - name: Placeholder verification\n\
+        run: echo \"Replace this workflow with the real build and test steps for your project.\"\n",
+        ),
+    }
 }
 
 fn mit_license(owner: &str, year: i32) -> String {

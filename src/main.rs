@@ -1,6 +1,7 @@
 mod audit;
 mod cli;
 mod generator;
+mod project;
 mod report;
 mod templates;
 

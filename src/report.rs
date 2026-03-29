@@ -1,4 +1,4 @@
-use crate::audit::{AuditCheck, AuditReport};
+use crate::audit::{AuditCheck, AuditReport, CheckStatus, ReadinessTier};
 use crate::cli::OutputFormat;
 use crate::generator::{FixReport, InitReport};
 
@@ -35,33 +35,77 @@ fn render_audit_human(report: &AuditReport, color: bool) -> String {
     lines.push(style.badge("OSSIFY REPORT", 96, true));
     lines.push(format!("Target: {}", report.target.display()));
     lines.push(format!(
-        "Open source readiness score: {}",
-        style.score(report.score)
+        "Project: {} ({})",
+        style.emphasis(&report.project.name),
+        report.project.summary()
+    ));
+    lines.push(format!(
+        "Open source readiness score: {} ({})",
+        style.score(report.score),
+        style.tier(report.readiness)
+    ));
+    lines.push(format!(
+        "Signal breakdown: {} strong, {} partial, {} missing",
+        report.strong_count(),
+        report.partial_count(),
+        report.missing_count()
     ));
     lines.push(String::new());
 
-    lines.push(style.section("Healthy"));
-    for check in report.present_checks() {
+    lines.push(style.section("Strong signals"));
+    for check in report.strong_checks() {
         lines.push(format!(
-            "  [{}] {} (+{})",
-            style.good("ok"),
+            "  [{}] {} (+{}/{})",
+            style.good(check.status.as_str()),
             check.label,
+            check.earned,
             check.weight
         ));
+        if let Some(detail) = &check.detail {
+            lines.push(format!("           {}", style.dim(detail)));
+        }
     }
 
-    lines.push(String::new());
-    lines.push(style.section("Missing or weak"));
-    for check in report.missing_checks() {
-        let fix_status = if check.fixable { "autofixable" } else { "manual" };
-        lines.push(format!(
-            "  [{}] {} (+{}, {})",
-            style.bad(check.status.as_str()),
-            check.label,
-            check.weight,
-            fix_status
-        ));
-        lines.push(format!("           {}", style.dim(check.hint)));
+    let partial: Vec<&AuditCheck> = report.partial_checks().collect();
+    if !partial.is_empty() {
+        lines.push(String::new());
+        lines.push(style.section("Needs work"));
+        for check in partial {
+            let action = if check.fixable {
+                "replaceable with --overwrite"
+            } else {
+                "manual review"
+            };
+            lines.push(format!(
+                "  [{}] {} (+{}/{}, {})",
+                style.warn(check.status.as_str()),
+                check.label,
+                check.earned,
+                check.weight,
+                action
+            ));
+            if let Some(detail) = &check.detail {
+                lines.push(format!("           {}", style.dim(detail)));
+            }
+            lines.push(format!("           {}", style.dim(check.hint)));
+        }
+    }
+
+    let missing: Vec<&AuditCheck> = report.missing_checks().collect();
+    if !missing.is_empty() {
+        lines.push(String::new());
+        lines.push(style.section("Missing"));
+        for check in missing {
+            let action = if check.fixable { "autofixable" } else { "manual" };
+            lines.push(format!(
+                "  [{}] {} (+0/{}, {})",
+                style.bad(check.status.as_str()),
+                check.label,
+                check.weight,
+                action
+            ));
+            lines.push(format!("           {}", style.dim(check.hint)));
+        }
     }
 
     lines.push(String::new());
@@ -69,6 +113,11 @@ fn render_audit_human(report: &AuditReport, color: bool) -> String {
     lines.push(String::from(
         "  ossify fix . --license mit --owner \"Your Name\"",
     ));
+    if report.partial_checks().any(|check| check.fixable) {
+        lines.push(String::from(
+            "  ossify fix . --overwrite --license mit --owner \"Your Name\"",
+        ));
+    }
 
     lines.join("\n")
 }
@@ -79,6 +128,11 @@ fn render_init_human(report: &InitReport, color: bool) -> String {
 
     lines.push(style.badge("OSSIFY INIT", 94, true));
     lines.push(format!("Target: {}", report.target.display()));
+    lines.push(format!(
+        "Project: {} ({})",
+        style.emphasis(&report.project.name),
+        report.project.summary()
+    ));
     lines.push(format!("Mode: {}", style.emphasis(report.mode.as_str())));
     lines.push(String::new());
 
@@ -93,7 +147,7 @@ fn render_init_human(report: &InitReport, color: bool) -> String {
     lines.push(String::new());
     lines.push(style.section("Tip"));
     lines.push(format!(
-        "  run `ossify audit {}` to see the new score",
+        "  run `ossify audit {}` to see the precise score breakdown",
         report.target.display()
     ));
 
@@ -113,6 +167,11 @@ fn render_fix_human(report: &FixReport, color: bool) -> String {
         style.score(report.after.score),
         delta
     ));
+    lines.push(format!(
+        "Tier: {} -> {}",
+        style.tier(report.before.readiness),
+        style.tier(report.after.readiness)
+    ));
     lines.push(String::new());
 
     if report.generated.files.is_empty() {
@@ -128,17 +187,33 @@ fn render_fix_human(report: &FixReport, color: bool) -> String {
         }
     }
 
-    let remaining: Vec<&AuditCheck> = report.after.missing_checks().collect();
-    if !remaining.is_empty() {
+    let remaining_partial: Vec<&AuditCheck> = report.after.partial_checks().collect();
+    let remaining_missing: Vec<&AuditCheck> = report.after.missing_checks().collect();
+
+    if !remaining_partial.is_empty() || !remaining_missing.is_empty() {
         lines.push(String::new());
-        lines.push(style.section("Still missing"));
-        for check in remaining {
-            let label = if check.fixable {
-                style.warn("review")
-            } else {
-                style.bad("manual")
-            };
-            lines.push(format!("  [{}] {}", label, check.label));
+        lines.push(style.section("Still needs attention"));
+
+        for check in remaining_partial {
+            lines.push(format!(
+                "  [{}] {} (+{}/{})",
+                style.warn(check.status.as_str()),
+                check.label,
+                check.earned,
+                check.weight
+            ));
+            if let Some(detail) = &check.detail {
+                lines.push(format!("           {}", style.dim(detail)));
+            }
+        }
+
+        for check in remaining_missing {
+            lines.push(format!(
+                "  [{}] {} (+0/{})",
+                style.bad(check.status.as_str()),
+                check.label,
+                check.weight
+            ));
             lines.push(format!("           {}", style.dim(check.hint)));
         }
     } else {
@@ -154,8 +229,27 @@ fn render_audit_json(report: &AuditReport) -> String {
     json_object(&[
         field("command", json_string("audit")),
         field("target", json_string(&report.target.display().to_string())),
+        field(
+            "project",
+            json_object(&[
+                field("name", json_string(&report.project.name)),
+                field("kind", json_string(report.project.kind.as_str())),
+                field(
+                    "manifest_path",
+                    json_optional_string(
+                        report
+                            .project
+                            .manifest_path
+                            .as_ref()
+                            .map(|path| path.display().to_string()),
+                    ),
+                ),
+            ]),
+        ),
+        field("readiness", json_string(report.readiness.as_str())),
         field("score", report.score.to_string()),
-        field("present_count", report.present_count().to_string()),
+        field("strong_count", report.strong_count().to_string()),
+        field("partial_count", report.partial_count().to_string()),
         field("missing_count", report.missing_count().to_string()),
         field(
             "checks",
@@ -167,10 +261,6 @@ fn render_audit_json(report: &AuditReport) -> String {
                     .collect::<Vec<String>>(),
             ),
         ),
-        field(
-            "next_step",
-            json_string("ossify fix . --license mit --owner \"Your Name\""),
-        ),
     ])
 }
 
@@ -178,6 +268,13 @@ fn render_init_json(report: &InitReport) -> String {
     json_object(&[
         field("command", json_string(report.mode.as_str())),
         field("target", json_string(&report.target.display().to_string())),
+        field(
+            "project",
+            json_object(&[
+                field("name", json_string(&report.project.name)),
+                field("kind", json_string(report.project.kind.as_str())),
+            ]),
+        ),
         field("file_count", report.files.len().to_string()),
         field(
             "files",
@@ -207,8 +304,8 @@ fn render_fix_json(report: &FixReport) -> String {
             "score_delta",
             (report.after.score as i16 - report.before.score as i16).to_string(),
         ),
-        field("generated", render_init_json(&report.generated)),
         field("before", render_audit_json(&report.before)),
+        field("generated", render_init_json(&report.generated)),
         field("after", render_audit_json(&report.after)),
     ])
 }
@@ -218,9 +315,20 @@ fn render_check_json(check: &AuditCheck) -> String {
         field("id", json_string(check.id)),
         field("label", json_string(check.label)),
         field("weight", check.weight.to_string()),
+        field("earned", check.earned.to_string()),
         field("status", json_string(check.status.as_str())),
         field("fixable", json_bool(check.fixable)),
         field("hint", json_string(check.hint)),
+        field(
+            "detail",
+            json_optional_string(check.detail.clone()),
+        ),
+        field(
+            "location",
+            json_optional_string(
+                check.location.as_ref().map(|path| path.display().to_string()),
+            ),
+        ),
     ])
 }
 
@@ -245,6 +353,13 @@ fn json_bool(value: bool) -> String {
         String::from("true")
     } else {
         String::from("false")
+    }
+}
+
+fn json_optional_string(value: Option<String>) -> String {
+    match value {
+        Some(value) => json_string(&value),
+        None => String::from("null"),
     }
 }
 
@@ -319,6 +434,14 @@ impl Style {
             self.warn(&format!("{score}/100"))
         } else {
             self.bad(&format!("{score}/100"))
+        }
+    }
+
+    fn tier(&self, tier: ReadinessTier) -> String {
+        match tier {
+            ReadinessTier::LaunchReady => self.good(tier.as_str()),
+            ReadinessTier::Promising => self.warn(tier.as_str()),
+            ReadinessTier::Rough => self.bad(tier.as_str()),
         }
     }
 

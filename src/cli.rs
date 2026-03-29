@@ -198,7 +198,7 @@ GLOBAL OPTIONS:
   --no-color    Disable ANSI colors
 
 DESCRIPTION:
-  Audit a repository, scaffold missing community files, and autofix repository hygiene gaps.
+  Audit a repository with content-aware scoring, scaffold missing community files, and autofix repository hygiene gaps.
 ",
         env!("CARGO_PKG_VERSION")
     )

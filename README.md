@@ -26,6 +26,15 @@
 
 The goal is simple: help a repo look maintained, understandable, and safe to contribute to.
 
+## V3 precision
+
+`ossify` no longer treats repository health like a binary checklist.
+
+- it detects the project type from real manifests
+- it distinguishes `strong`, `partial`, and `missing` signals
+- it inspects file content, not just file existence
+- it generates README and CI scaffolding that better match Rust, Node.js, Python, and Go projects
+
 ## Commands
 
 ```text
@@ -51,20 +60,21 @@ Global flags:
 
 OSSIFY REPORT
 Target: .
-Open source readiness score: 47/100
+Project: ossify (Rust via C:\repo\Cargo.toml)
+Open source readiness score: 82/100 (promising)
+Signal breakdown: 7 strong, 3 partial, 1 missing
 
-Healthy
-  [ok] README (+15)
-  [ok] License (+20)
-  [ok] Project manifest (+5)
+Strong signals
+  [strong] README (+14/14)
+  [strong] License (+16/16)
+  [strong] CI workflow (+10/10)
 
-Missing or weak
-  [missing] Contributing guide (+10, autofixable)
-  [missing] Code of conduct (+10, autofixable)
-  [missing] Security policy (+10, autofixable)
-  [missing] Issue templates (+8, autofixable)
-  [missing] Pull request template (+7, autofixable)
-  [missing] CI workflow (+7, autofixable)
+Needs work
+  [partial] Contributing guide (+6/9, replaceable with --overwrite)
+  [partial] Security policy (+6/10, replaceable with --overwrite)
+
+Missing
+  [missing] Issue templates (+0/8, autofixable)
 
 Next move
   ossify fix . --license mit --owner "Acme Maintainers"
@@ -95,7 +105,7 @@ The repository already includes:
 
 - CI for `cargo check` and `cargo test`
 - GitHub release packaging for Linux, macOS, and Windows
-- theme-aware README artwork that stays restrained and readable
+- structured output for human and JSON consumers
 
 Once Rust is installed:
 
@@ -108,6 +118,7 @@ cargo run -- fix . --license mit --owner "Acme Maintainers"
 ## Roadmap
 
 - `ossify fix --check` for CI gatekeeping without writing files
+- configurable audit rules and score weighting
 - presets for libraries, CLIs, SDKs, and SaaS repos
 - score badges for README integration
 - GitHub and GitLab-specific hygiene packs
