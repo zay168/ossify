@@ -1,0 +1,148 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="170" y1="60" x2="1430" y2="860" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFF7EC"/>
+      <stop offset="0.48" stop-color="#F7F3EA"/>
+      <stop offset="1" stop-color="#EEF3FB"/>
+    </linearGradient>
+    <radialGradient id="glowA" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1270 180) rotate(127.312) scale(470 420)">
+      <stop stop-color="#6FD1C3" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#6FD1C3" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowB" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(320 120) rotate(61.3895) scale(440 410)">
+      <stop stop-color="#E18D5D" stop-opacity="0.24"/>
+      <stop offset="1" stop-color="#E18D5D" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="56" height="56" patternUnits="userSpaceOnUse">
+      <path d="M56 0H0V56" stroke="#26476C" stroke-opacity="0.08"/>
+    </pattern>
+    <linearGradient id="panelStroke" x1="290" y1="170" x2="1350" y2="720" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#86A4D7" stop-opacity="0.62"/>
+      <stop offset="1" stop-color="#D39A72" stop-opacity="0.42"/>
+    </linearGradient>
+    <linearGradient id="score" x1="0" y1="0" x2="540" y2="0" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1DAA9E"/>
+      <stop offset="0.6" stop-color="#72C84F"/>
+      <stop offset="1" stop-color="#DD9644"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="16"/>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="900" rx="40" fill="url(#bg)"/>
+  <rect width="1600" height="900" rx="40" fill="url(#grid)"/>
+  <rect width="1600" height="900" rx="40" fill="url(#glowA)"/>
+  <rect width="1600" height="900" rx="40" fill="url(#glowB)"/>
+
+  <circle cx="1270" cy="180" r="118" fill="#6FD1C3" fill-opacity="0.20" filter="url(#soft)">
+    <animate attributeName="r" values="118;142;118" dur="6s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="320" cy="136" r="90" fill="#E18D5D" fill-opacity="0.17" filter="url(#soft)">
+    <animate attributeName="r" values="90;116;90" dur="7s" repeatCount="indefinite"/>
+  </circle>
+
+  <rect x="70" y="70" width="1460" height="760" rx="30" fill="#FFFDF8" fill-opacity="0.80" stroke="url(#panelStroke)" stroke-width="1.6"/>
+
+  <rect x="120" y="128" width="214" height="34" rx="17" fill="#F2EDE2" stroke="#CBB99E"/>
+  <circle cx="144" cy="145" r="5" fill="#169C91">
+    <animate attributeName="opacity" values="1;0.35;1" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <text x="162" y="151" fill="#3C4F67" font-family="Georgia, serif" font-size="15" letter-spacing="2.8">OPEN SOURCE LAUNCHPAD</text>
+
+  <text x="120" y="258" fill="#182638" font-family="Georgia, serif" font-size="84" font-weight="700">POLISH THE REPO</text>
+  <text x="120" y="340" fill="#182638" font-family="Georgia, serif" font-size="84" font-weight="700">BEFORE THE WORLD SEES IT</text>
+
+  <text x="122" y="406" fill="#4D627D" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="27">
+    Audit the trust surface. Fix the missing signals. Ship like a project that expects contributors.
+  </text>
+
+  <rect x="120" y="472" width="730" height="134" rx="24" fill="#F9F5EB" stroke="#D7C7B2"/>
+  <text x="156" y="522" fill="#1A7D9A" font-family="'Courier New', monospace" font-size="22">$ ossify fix . --license mit --owner "Acme Maintainers"</text>
+  <rect x="156" y="546" width="548" height="3" rx="1.5" fill="#DCCFBF"/>
+  <rect x="156" y="546" width="0" height="3" rx="1.5" fill="url(#score)">
+    <animate attributeName="width" values="0;548;548" dur="3.8s" repeatCount="indefinite"/>
+  </rect>
+  <text x="156" y="584" fill="#566983" font-family="'Courier New', monospace" font-size="19">scaffolding contributor docs, templates, CI, release hygiene</text>
+  <rect x="780" y="503" width="16" height="28" rx="4" fill="#DD9644">
+    <animate attributeName="opacity" values="1;0;1" dur="1.2s" repeatCount="indefinite"/>
+  </rect>
+
+  <rect x="905" y="148" width="530" height="612" rx="28" fill="#FBFAF6" stroke="#C8D5E7"/>
+  <text x="945" y="208" fill="#4B607C" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="18" letter-spacing="2.2">READINESS ENGINE</text>
+
+  <text x="946" y="292" fill="#172636" font-family="Georgia, serif" font-size="124" font-weight="700">47</text>
+  <text x="946" y="292" fill="#172636" font-family="Georgia, serif" font-size="124" font-weight="700" opacity="0">
+    84
+    <animate attributeName="opacity" values="0;0;1;1;0;0" dur="4.4s" repeatCount="indefinite"/>
+  </text>
+  <text x="946" y="292" fill="#172636" font-family="Georgia, serif" font-size="124" font-weight="700" opacity="0">
+    100
+    <animate attributeName="opacity" values="0;0;0;0;1;1" dur="4.4s" repeatCount="indefinite"/>
+  </text>
+  <text x="1118" y="289" fill="#69809D" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="30">/ 100</text>
+  <text x="946" y="330" fill="#5C7290" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="23">open-source readiness score</text>
+
+  <rect x="946" y="368" width="360" height="14" rx="7" fill="#E4DDD2"/>
+  <rect x="946" y="368" width="0" height="14" rx="7" fill="url(#score)">
+    <animate attributeName="width" values="170;302;360;360" dur="4.4s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="946" y="410" width="360" height="1" fill="#D8DEEA"/>
+  <rect x="946" y="462" width="360" height="1" fill="#D8DEEA"/>
+  <rect x="946" y="514" width="360" height="1" fill="#D8DEEA"/>
+
+  <g transform="translate(948 426)">
+    <rect width="142" height="32" rx="16" fill="#EEF3FB" stroke="#C7D5E7"/>
+    <text x="22" y="21" fill="#1A7D9A" font-family="'Courier New', monospace" font-size="16">README</text>
+    <circle cx="112" cy="16" r="5" fill="#169C91"/>
+    <animateTransform attributeName="transform" type="translate" values="948 426;948 420;948 426" dur="4.6s" repeatCount="indefinite"/>
+  </g>
+
+  <g transform="translate(1110 426)">
+    <rect width="136" height="32" rx="16" fill="#EEF3FB" stroke="#C7D5E7"/>
+    <text x="19" y="21" fill="#1A7D9A" font-family="'Courier New', monospace" font-size="16">LICENSE</text>
+    <circle cx="109" cy="16" r="5" fill="#169C91"/>
+    <animateTransform attributeName="transform" type="translate" values="1110 426;1110 434;1110 426" dur="4s" repeatCount="indefinite"/>
+  </g>
+
+  <g transform="translate(948 478)">
+    <rect width="188" height="32" rx="16" fill="#EEF3FB" stroke="#C7D5E7"/>
+    <text x="18" y="21" fill="#40536C" font-family="'Courier New', monospace" font-size="16">CONTRIBUTING</text>
+    <circle cx="159" cy="16" r="5" fill="#DD9644">
+      <animate attributeName="fill" values="#DD9644;#169C91;#169C91" dur="4.4s" repeatCount="indefinite"/>
+    </circle>
+    <animateTransform attributeName="transform" type="translate" values="948 478;948 472;948 478" dur="3.8s" repeatCount="indefinite"/>
+  </g>
+
+  <g transform="translate(1160 478)">
+    <rect width="144" height="32" rx="16" fill="#EEF3FB" stroke="#C7D5E7"/>
+    <text x="20" y="21" fill="#40536C" font-family="'Courier New', monospace" font-size="16">SECURITY</text>
+    <circle cx="118" cy="16" r="5" fill="#DD9644">
+      <animate attributeName="fill" values="#DD9644;#169C91;#169C91" dur="4.4s" begin="0.4s" repeatCount="indefinite"/>
+    </circle>
+    <animateTransform attributeName="transform" type="translate" values="1160 478;1160 486;1160 478" dur="4.8s" repeatCount="indefinite"/>
+  </g>
+
+  <g transform="translate(948 530)">
+    <rect width="178" height="32" rx="16" fill="#EEF3FB" stroke="#C7D5E7"/>
+    <text x="18" y="21" fill="#40536C" font-family="'Courier New', monospace" font-size="16">ISSUE TEMPLATE</text>
+    <circle cx="149" cy="16" r="5" fill="#DD9644">
+      <animate attributeName="fill" values="#DD9644;#169C91;#169C91" dur="4.4s" begin="0.8s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <g transform="translate(1142 530)">
+    <rect width="116" height="32" rx="16" fill="#EEF3FB" stroke="#C7D5E7"/>
+    <text x="18" y="21" fill="#40536C" font-family="'Courier New', monospace" font-size="16">CI YAML</text>
+    <circle cx="93" cy="16" r="5" fill="#DD9644">
+      <animate attributeName="fill" values="#DD9644;#169C91;#169C91" dur="4.4s" begin="1.2s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <path d="M930 675H1360" stroke="#C7D5E7" stroke-width="2" stroke-dasharray="7 12"/>
+  <circle cx="930" cy="675" r="7" fill="#169C91">
+    <animate attributeName="cx" values="930;1360;1360" dur="4.6s" repeatCount="indefinite"/>
+  </circle>
+  <text x="946" y="730" fill="#1B2B3F" font-family="Georgia, serif" font-size="32" font-weight="700">score. scaffold. ship.</text>
+  <text x="946" y="766" fill="#5B718D" font-family="'Trebuchet MS', Verdana, sans-serif" font-size="21">A tiny CLI with a very visible payoff.</text>
+</svg>
