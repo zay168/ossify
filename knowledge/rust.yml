@@ -1,0 +1,21 @@
+version: 1
+rules:
+  ci_workflow:
+    valid_commands:
+      - cargo check
+      - cargo test
+      - cargo build
+      - cargo clippy
+      - cargo fmt --check
+  tests:
+    valid_commands:
+      - cargo test
+  lint_and_format:
+    valid_commands:
+      - cargo clippy
+      - cargo fmt --check
+  release_workflow:
+    valid_commands:
+      - cargo publish
+      - cargo package
+      - softprops/action-gh-release

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ossify | Turn rough repos into projects people trust</title>
+    <meta
+      name="description"
+      content="Install ossify with one command on Windows, macOS, or Linux. Turn rough repos into projects people trust with maintainer-grade audits, safe fix plans, and GitHub-aware scaffolding."
+    />
+    <meta name="theme-color" content="#08111f" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand-link" href="#top" aria-label="ossify home">
+          <span class="brand-mark" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+            <span></span>
+          </span>
+          <span class="brand-name">ossify</span>
+        </a>
+        <nav class="site-nav">
+          <a href="#install">Install</a>
+          <a href="https://github.com/zay168/ossify/releases">Releases</a>
+          <a href="https://github.com/zay168/ossify">GitHub</a>
+        </nav>
+        <div class="header-actions">
+          <a class="button button-header" href="#install">Get started</a>
+          <button
+            class="menu-toggle"
+            type="button"
+            aria-expanded="false"
+            aria-controls="mobile-menu"
+            data-menu-toggle
+          >
+            <span></span>
+            <span></span>
+            <span></span>
+            <span class="sr-only">Open navigation</span>
+          </button>
+        </div>
+      </header>
+
+      <div class="mobile-menu" id="mobile-menu" hidden>
+        <div class="mobile-menu-backdrop" data-menu-close></div>
+        <div class="mobile-menu-panel">
+          <a href="#install" data-menu-link>Install</a>
+          <a href="https://github.com/zay168/ossify/releases" data-menu-link>Releases</a>
+          <a href="https://github.com/zay168/ossify" data-menu-link>GitHub</a>
+          <div class="mobile-menu-actions">
+            <a class="button button-secondary" href="https://github.com/zay168/ossify">View the repo</a>
+            <a class="button button-primary" href="#install">Get started</a>
+          </div>
+        </div>
+      </div>
+
+      <main id="top">
+        <section class="hero">
+          <div class="hero-copy">
+            <p class="eyebrow">Open source trust, engineered</p>
+            <h1>Turn rough repos into projects people trust on sight.</h1>
+            <p class="lede">
+              <strong>ossify</strong> reads a repository like a skeptical maintainer:
+              docs, metadata, CI, release hygiene, contributor signals, and the exact
+              gaps that make a project feel unfinished before adoption even starts.
+            </p>
+            <div class="hero-actions">
+              <a class="button button-primary" href="#install">Install ossify</a>
+              <a class="button button-secondary" href="https://github.com/zay168/ossify">
+                View the repo
+              </a>
+            </div>
+            <ul class="hero-facts">
+              <li>Offline-first, no runtime API dependency</li>
+              <li>Interactive terminal explorer for audits and plans</li>
+              <li>Safe scaffolding for GitHub-aware trust signals</li>
+            </ul>
+          </div>
+
+          <div class="hero-terminal">
+            <div class="terminal-chrome">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="terminal-body">
+              <p class="terminal-command">PS C:\repo&gt; ossify fix . --plan</p>
+              <div class="terminal-score">
+                <div>
+                  <span class="terminal-label">Current</span>
+                  <strong>63</strong>
+                </div>
+                <span class="terminal-arrow">&rarr;</span>
+                <div>
+                  <span class="terminal-label">Estimated</span>
+                  <strong>91</strong>
+                </div>
+              </div>
+              <ul class="terminal-list">
+                <li><span class="terminal-badge good">created</span> README.md</li>
+                <li><span class="terminal-badge good">created</span> .github/workflows/ci.yml</li>
+                <li><span class="terminal-badge warn">skipped</span> .github/FUNDING.yml</li>
+                <li><span class="terminal-badge info">manual</span> README examples still need review</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="install-section" id="install">
+          <div class="section-heading">
+            <p class="eyebrow">One-line install</p>
+          </div>
+
+          <div class="install-card">
+            <div class="platform-tabs" role="tablist" aria-label="Install commands">
+              <button class="tab is-active" type="button" data-target="powershell">Windows PowerShell</button>
+              <button class="tab" type="button" data-target="shell">macOS / Linux</button>
+            </div>
+
+            <div class="command-panel is-active" data-platform="powershell">
+              <p class="command-meta">
+                Installs to <code>%LOCALAPPDATA%\Programs\ossify\bin</code> and adds it
+                to your user <code>PATH</code> when needed.
+              </p>
+              <div class="command-row">
+                <code id="command-powershell">irm https://zay168.github.io/ossify/install.ps1 | iex</code>
+                <button class="copy-button" type="button" data-copy-target="command-powershell">
+                  Copy
+                </button>
+              </div>
+              <div class="command-links">
+                <a href="install.ps1">View install.ps1</a>
+                <a href="https://github.com/zay168/ossify/releases">Release assets</a>
+              </div>
+            </div>
+
+            <div class="command-panel" data-platform="shell">
+              <p class="command-meta">
+                Installs to <code>~/.local/bin</code> by default and keeps the binary local
+                to the current user.
+              </p>
+              <div class="command-row">
+                <code id="command-shell">curl -fsSL https://zay168.github.io/ossify/install.sh | sh</code>
+                <button class="copy-button" type="button" data-copy-target="command-shell">
+                  Copy
+                </button>
+              </div>
+              <div class="command-links">
+                <a href="install.sh">View install.sh</a>
+                <a href="https://github.com/zay168/ossify/releases">Release assets</a>
+              </div>
+            </div>
+
+            <p class="install-note">
+              Optional overrides:
+              <code>OSSIFY_VERSION=v0.1.0</code> to pin a release and
+              <code>OSSIFY_INSTALL_DIR=/custom/path</code> to choose the install directory.
+            </p>
+          </div>
+        </section>
+
+      </main>
+
+      <footer class="site-footer">
+        <p>ossify by Open Source Builders.</p>
+        <div class="footer-links">
+          <a href="https://github.com/zay168/ossify">GitHub</a>
+          <a href="https://github.com/zay168/ossify/releases">Releases</a>
+          <a href="install.ps1">install.ps1</a>
+          <a href="install.sh">install.sh</a>
+        </div>
+      </footer>
+    </div>
+
+    <div class="toast" id="copy-toast" aria-live="polite">Command copied.</div>
+    <script src="app.js"></script>
+  </body>
+</html>

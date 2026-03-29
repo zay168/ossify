@@ -1,0 +1,169 @@
+version: 1
+rules:
+  project_manifest:
+    related_paths:
+      - Cargo.toml
+      - package.json
+      - pyproject.toml
+      - go.mod
+    aliases:
+      - manifest
+      - package
+      - module
+  manifest_metadata:
+    related_paths:
+      - Cargo.toml
+      - package.json
+      - pyproject.toml
+      - go.mod
+    aliases:
+      - description
+      - license
+      - repository
+      - homepage
+      - version
+      - keywords
+      - categories
+  license:
+    related_paths:
+      - LICENSE
+      - LICENSE.md
+      - COPYING
+    aliases:
+      - license
+  readme:
+    related_paths:
+      - README.md
+      - CONTEXT.md
+      - docs/README.md
+      - docs/index.md
+    anti_patterns:
+      - add installation instructions here
+      - one-line value proposition
+      - replace this workflow with the real build and test steps
+    section_aliases:
+      install:
+        - install
+        - setup
+        - getting started
+      usage:
+        - usage
+        - quickstart
+        - example
+      contributing:
+        - contributing
+        - development
+      license:
+        - license
+  examples:
+    related_paths:
+      - examples
+      - example
+      - scripts
+      - docs/examples
+    aliases:
+      - example
+      - sample
+      - demo
+  contributing_guide:
+    related_paths:
+      - CONTRIBUTING.md
+    aliases:
+      - pull request
+      - issue
+      - branch
+      - test
+  code_of_conduct:
+    related_paths:
+      - CODE_OF_CONDUCT.md
+    aliases:
+      - expected behavior
+      - unacceptable behavior
+      - report
+  security_policy:
+    related_paths:
+      - SECURITY.md
+    aliases:
+      - vulnerability
+      - private
+      - report
+  issue_templates:
+    related_paths:
+      - .github/ISSUE_TEMPLATE
+      - .github/ISSUE_TEMPLATE/bug_report.md
+      - .github/ISSUE_TEMPLATE/feature_request.md
+    aliases:
+      - bug
+      - feature
+      - issue
+  pull_request_template:
+    related_paths:
+      - .github/PULL_REQUEST_TEMPLATE.md
+      - .github/pull_request_template.md
+    aliases:
+      - checklist
+      - verification
+      - summary
+  codeowners:
+    related_paths:
+      - .github/CODEOWNERS
+      - CODEOWNERS
+    aliases:
+      - codeowners
+      - reviewer
+  funding:
+    related_paths:
+      - .github/FUNDING.yml
+    aliases:
+      - github
+      - custom
+      - funding
+  ci_workflow:
+    related_paths:
+      - .github/workflows
+    aliases:
+      - pull_request
+      - push
+      - workflow_dispatch
+      - jobs
+  tests:
+    related_paths:
+      - tests
+      - src
+    aliases:
+      - test
+      - spec
+      - integration
+  lint_and_format:
+    related_paths:
+      - .github/workflows
+      - package.json
+      - pyproject.toml
+      - Cargo.toml
+    aliases:
+      - lint
+      - format
+      - fmt
+  dependabot:
+    related_paths:
+      - .github/dependabot.yml
+    aliases:
+      - package-ecosystem
+      - schedule
+  changelog:
+    related_paths:
+      - CHANGELOG.md
+    aliases:
+      - changelog
+      - unreleased
+      - added
+      - fixed
+  release_workflow:
+    related_paths:
+      - .github/workflows/release.yml
+      - .github/workflows
+    aliases:
+      - workflow_dispatch
+      - tags
+      - release
+      - publish

@@ -3,3 +3,8 @@
 /.vscode
 *.pdb
 *.exe
+frontend-demo/node_modules/
+frontend-demo/dist/
+frontend-demo/*.tsbuildinfo
+frontend-demo/vite.config.js
+frontend-demo/vite.config.d.ts

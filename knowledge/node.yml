@@ -1,0 +1,33 @@
+version: 1
+rules:
+  ci_workflow:
+    valid_commands:
+      - npm test
+      - pnpm test
+      - yarn test
+      - npm run build
+      - pnpm build
+      - yarn build
+      - npm run lint
+      - pnpm lint
+      - yarn lint
+  tests:
+    valid_commands:
+      - npm test
+      - pnpm test
+      - yarn test
+      - vitest
+      - jest
+  lint_and_format:
+    valid_commands:
+      - eslint
+      - prettier
+      - npm run lint
+      - pnpm lint
+      - yarn lint
+  release_workflow:
+    valid_commands:
+      - npm publish
+      - pnpm publish
+      - yarn npm publish
+      - softprops/action-gh-release

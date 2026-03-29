@@ -1,0 +1,23 @@
+version: 1
+rules:
+  ci_workflow:
+    valid_commands:
+      - pytest
+      - python -m pytest
+      - python -m build
+      - ruff
+      - black --check
+  tests:
+    valid_commands:
+      - pytest
+      - python -m pytest
+  lint_and_format:
+    valid_commands:
+      - ruff
+      - black --check
+      - ruff format
+  release_workflow:
+    valid_commands:
+      - python -m build
+      - twine upload
+      - softprops/action-gh-release

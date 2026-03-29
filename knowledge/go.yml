@@ -1,0 +1,20 @@
+version: 1
+rules:
+  ci_workflow:
+    valid_commands:
+      - go test ./...
+      - go build ./...
+      - golangci-lint run
+      - goreleaser
+  tests:
+    valid_commands:
+      - go test ./...
+  lint_and_format:
+    valid_commands:
+      - golangci-lint run
+      - gofmt
+  release_workflow:
+    valid_commands:
+      - goreleaser
+      - go build ./...
+      - softprops/action-gh-release
