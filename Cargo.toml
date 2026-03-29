@@ -1,0 +1,17 @@
+[package]
+name = "ossify"
+version = "0.1.0"
+edition = "2021"
+authors = ["Open Source Builders"]
+description = "A Rust CLI that audits repositories and scaffolds the missing files to make them open-source ready."
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/your-org/ossify"
+homepage = "https://github.com/your-org/ossify"
+keywords = ["cli", "open-source", "scaffold", "repository", "audit"]
+categories = ["command-line-utilities", "development-tools"]
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
