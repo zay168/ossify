@@ -1,0 +1,16 @@
+[build]
+command = "npm run build:netlify"
+publish = "netlify-dist"
+
+[build.environment]
+NODE_VERSION = "22"
+
+[[redirects]]
+from = "/"
+to = "/ossify/"
+status = 302
+
+[[redirects]]
+from = "/ossify"
+to = "/ossify/"
+status = 301

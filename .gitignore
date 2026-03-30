@@ -5,6 +5,8 @@
 *.exe
 frontend-demo/node_modules/
 frontend-demo/dist/
+frontend-demo/netlify-dist/
+frontend-demo/.netlify/
 frontend-demo/*.tsbuildinfo
 frontend-demo/vite.config.js
 frontend-demo/vite.config.d.ts

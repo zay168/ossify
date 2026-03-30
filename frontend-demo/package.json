@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:netlify": "npm run build && node scripts/prepare-netlify.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
