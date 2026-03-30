@@ -5,7 +5,10 @@ on:
     branches:
       - main
     paths:
-      - "docs/**"
+      - "frontend-demo/**"
+      - "docs/install.ps1"
+      - "docs/install.sh"
+      - "docs/favicon.svg"
       - ".github/workflows/pages.yml"
       - "README.md"
   workflow_dispatch:
@@ -32,9 +35,27 @@ jobs:
         with:
           enablement: true
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend-demo/package-lock.json
+
+      - name: Build React landing
+        working-directory: frontend-demo
+        run: |
+          npm ci
+          npm run build
+
+      - name: Prepare Pages artifact
+        run: |
+          cp docs/install.ps1 frontend-demo/dist/install.ps1
+          cp docs/install.sh frontend-demo/dist/install.sh
+          cp docs/favicon.svg frontend-demo/dist/favicon.svg
+
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: docs
+          path: frontend-demo/dist
 
       - id: deployment
         uses: actions/deploy-pages@v4

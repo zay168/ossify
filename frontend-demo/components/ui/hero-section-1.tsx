@@ -53,6 +53,8 @@ const trustSignals = [
   { label: "Signals that make a repo safer to adopt", icon: ShieldCheck },
 ];
 
+const heroBackgroundUrl = `${import.meta.env.BASE_URL}hero-background.png`;
+
 export function HeroSection() {
   return (
     <>
@@ -96,7 +98,7 @@ export function HeroSection() {
               className="absolute inset-0 -z-20"
             >
               <img
-                src="/hero-background.png"
+                src={heroBackgroundUrl}
                 alt="Workspace background"
                 className="absolute inset-x-0 top-56 hidden opacity-25 saturate-0 lg:top-24 lg:block"
                 width="1800"
