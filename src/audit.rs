@@ -2783,8 +2783,8 @@ fn assess_release_workflow(snapshot: &RepositorySnapshot) -> RuleAssessment {
             ));
         }
     }
-    if !has_release_trigger
-        && !(has_deployment_surface && matches!(snapshot.project.profile, RepoProfile::App))
+    if !(has_release_trigger
+        || has_deployment_surface && matches!(snapshot.project.profile, RepoProfile::App))
     {
         findings.push(finding(
             "release_workflow.trigger",

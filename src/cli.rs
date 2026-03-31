@@ -25,10 +25,35 @@ pub struct ParsedArgs {
 #[derive(Debug, Subcommand)]
 pub enum Command {
     Audit(AuditArgs),
+    Doctor(DoctorArgs),
     Init(ScaffoldArgs),
     Fix(FixArgs),
     Prompt(PromptArgs),
     Version,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct DoctorArgs {
+    #[command(subcommand)]
+    pub command: DoctorCommand,
+}
+
+#[derive(Debug, Clone, Subcommand)]
+pub enum DoctorCommand {
+    Docs(DocsDoctorArgs),
+    Workflow(WorkflowDoctorArgs),
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct DocsDoctorArgs {
+    #[arg(default_value = ".")]
+    pub path: PathBuf,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct WorkflowDoctorArgs {
+    #[arg(default_value = ".")]
+    pub path: PathBuf,
 }
 
 #[derive(Debug, Clone, Args)]
@@ -182,6 +207,29 @@ impl ParsedArgs {
     }
 }
 
+fn prepare_default_command(mut raw: Vec<String>) -> Vec<String> {
+    const SUBCOMMANDS: &[&str] = &[
+        "audit", "doctor", "init", "fix", "prompt", "help", "version",
+    ];
+
+    if raw.len() <= 1 {
+        return raw;
+    }
+
+    if let Some((index, value)) = raw
+        .iter()
+        .enumerate()
+        .skip(1)
+        .find(|(_, value)| !value.starts_with('-'))
+    {
+        if !SUBCOMMANDS.contains(&value.as_str()) {
+            raw.insert(index, String::from("audit"));
+        }
+    }
+
+    raw
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -247,25 +295,34 @@ mod tests {
             _ => panic!("expected prompt command"),
         }
     }
-}
 
-fn prepare_default_command(mut raw: Vec<String>) -> Vec<String> {
-    const SUBCOMMANDS: &[&str] = &["audit", "init", "fix", "prompt", "help", "version"];
+    #[test]
+    fn doctor_docs_parses() {
+        let args = ParsedArgs::try_parse_from(["ossify", "doctor", "docs", "."])
+            .expect("parse doctor docs");
 
-    if raw.len() <= 1 {
-        return raw;
-    }
-
-    if let Some((index, value)) = raw
-        .iter()
-        .enumerate()
-        .skip(1)
-        .find(|(_, value)| !value.starts_with('-'))
-    {
-        if !SUBCOMMANDS.contains(&value.as_str()) {
-            raw.insert(index, String::from("audit"));
+        match args.command.expect("command") {
+            Command::Doctor(command) => match command.command {
+                DoctorCommand::Docs(command) => assert_eq!(command.path, PathBuf::from(".")),
+                DoctorCommand::Workflow(_) => panic!("expected docs doctor"),
+            },
+            _ => panic!("expected doctor command"),
         }
     }
 
-    raw
+    #[test]
+    fn doctor_workflow_parses() {
+        let args = ParsedArgs::try_parse_from(["ossify", "doctor", "workflow", "."])
+            .expect("parse doctor workflow");
+
+        match args.command.expect("command") {
+            Command::Doctor(command) => match command.command {
+                DoctorCommand::Workflow(command) => {
+                    assert_eq!(command.path, PathBuf::from("."))
+                }
+                _ => panic!("expected workflow doctor"),
+            },
+            _ => panic!("expected doctor command"),
+        }
+    }
 }

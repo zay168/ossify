@@ -2,6 +2,7 @@ mod audit;
 mod cli;
 mod clipboard;
 mod config;
+mod doctor;
 mod generator;
 mod intel;
 mod project;
@@ -14,13 +15,17 @@ use std::path::Path;
 use std::process::ExitCode;
 
 use audit::audit_repository;
-use cli::{AuditArgs, Command, FixArgs, OutputFormat, ParsedArgs, PromptArgs, ScaffoldArgs};
+use cli::{
+    AuditArgs, Command, DoctorArgs, DoctorCommand, FixArgs, OutputFormat, ParsedArgs, PromptArgs,
+    ScaffoldArgs,
+};
 use config::OssifyConfig;
+use doctor::{doctor_docs, doctor_workflow};
 use generator::{fix_repository, generate_missing_files, plan_fix_repository, InitOptions};
 use prompt::build_bug_prompt_report;
 use report::{
-    print_audit_report, print_bug_prompt_report, print_fix_report, print_init_report,
-    print_plan_report, OutputOptions,
+    print_audit_report, print_bug_prompt_report, print_docs_doctor_report, print_fix_report,
+    print_init_report, print_plan_report, print_workflow_doctor_report, OutputOptions,
 };
 
 fn main() -> ExitCode {
@@ -39,6 +44,7 @@ fn main() -> ExitCode {
 
     match args.command_or_default() {
         Command::Audit(command) => run_audit(command, &output),
+        Command::Doctor(command) => run_doctor(command, &output),
         Command::Init(command) => run_init(command, &output),
         Command::Fix(command) => run_fix(command, &output),
         Command::Prompt(command) => run_prompt(command, &output),
@@ -46,6 +52,49 @@ fn main() -> ExitCode {
             println!("ossify {}", env!("CARGO_PKG_VERSION"));
             ExitCode::SUCCESS
         }
+    }
+}
+
+fn run_doctor(command: DoctorArgs, output: &OutputOptions) -> ExitCode {
+    match command.command {
+        DoctorCommand::Docs(command) => match doctor_docs(&command.path) {
+            Ok(report) => {
+                if let Err(error) = print_docs_doctor_report(&report, output) {
+                    eprintln!(
+                        "Failed to present docs doctor report for {}: {error}",
+                        command.path.display()
+                    );
+                    return ExitCode::from(1);
+                }
+                ExitCode::SUCCESS
+            }
+            Err(error) => {
+                eprintln!(
+                    "Failed to doctor docs for {}: {error}",
+                    command.path.display()
+                );
+                ExitCode::from(1)
+            }
+        },
+        DoctorCommand::Workflow(command) => match doctor_workflow(&command.path) {
+            Ok(report) => {
+                if let Err(error) = print_workflow_doctor_report(&report, output) {
+                    eprintln!(
+                        "Failed to present workflow doctor report for {}: {error}",
+                        command.path.display()
+                    );
+                    return ExitCode::from(1);
+                }
+                ExitCode::SUCCESS
+            }
+            Err(error) => {
+                eprintln!(
+                    "Failed to doctor workflows for {}: {error}",
+                    command.path.display()
+                );
+                ExitCode::from(1)
+            }
+        },
     }
 }
 

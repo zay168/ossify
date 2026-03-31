@@ -72,25 +72,32 @@ impl OssifyConfig {
             }
         }
 
-        let mut config = Self::default();
-        config.source = fs::canonicalize(&path).ok().or(Some(path));
-        config.profile = raw.profile;
-        if let Some(minimum_score) = raw.minimum_score {
-            config.minimum_score = minimum_score.clamp(1, 100);
-        }
-        if let Some(defaults) = raw.defaults {
-            config.defaults = defaults.into_config_defaults();
-        }
-        if let Some(weights) = raw.weights {
-            config.weights = weights.into_category_weights()?;
-        }
-        config.rules = raw
+        let minimum_score = raw
+            .minimum_score
+            .map(|value| value.clamp(1, 100))
+            .unwrap_or(85);
+        let defaults = raw
+            .defaults
+            .map(RawDefaults::into_config_defaults)
+            .unwrap_or_default();
+        let weights = match raw.weights {
+            Some(weights) => weights.into_category_weights()?,
+            None => CategoryWeights::default(),
+        };
+        let rules = raw
             .rules
             .into_iter()
             .map(|(key, value)| (key, value.into_rule_override()))
             .collect();
 
-        Ok(config)
+        Ok(Self {
+            source: fs::canonicalize(&path).ok().or(Some(path)),
+            profile: raw.profile,
+            minimum_score,
+            defaults,
+            weights,
+            rules,
+        })
     }
 
     pub fn source(&self) -> Option<&Path> {

@@ -78,7 +78,7 @@ fn read_git_history(root: &Path, commit_limit: usize, tag_limit: usize) -> Optio
                     kind: String::from("commit"),
                     summary: format!("commit {}", short_id(&id)),
                     id,
-                    commit_time: info.commit_time.map(i64::from),
+                    commit_time: info.commit_time,
                     path: None,
                 }
             })

@@ -419,7 +419,7 @@ fn top_diagnostics(model: &UiReport) -> Vec<String> {
         .collect()
 }
 
-fn file_sections<'a>(model: &'a UiReport, style: &Style) -> Vec<(&'static str, Vec<String>)> {
+fn file_sections(model: &UiReport, style: &Style) -> Vec<(&'static str, Vec<String>)> {
     if model.files.is_empty() {
         return Vec::new();
     }
@@ -682,7 +682,7 @@ fn strip_ansi(input: &str) -> String {
     while let Some(ch) = chars.next() {
         if ch == '\u{1b}' && matches!(chars.peek(), Some('[')) {
             let _ = chars.next();
-            while let Some(next) = chars.next() {
+            for next in chars.by_ref() {
                 if ('@'..='~').contains(&next) {
                     break;
                 }

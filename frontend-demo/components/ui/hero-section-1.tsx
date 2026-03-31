@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 
 import { AnimatedGroup } from "@/components/ui/animated-group";
+import { AnimatedTextCycleDemo } from "@/components/ui/animated-text-cycle-demo";
 import { Button } from "@/components/ui/button";
 import { FlickeringFooter } from "@/components/ui/flickering-footer";
 import { TextEffect } from "@/components/ui/text-effect";
@@ -154,6 +155,10 @@ export function HeroSection() {
                     contributor signals, CI, release surface, and the exact gaps that
                     keep a repo from feeling ready.
                   </TextEffect>
+
+                  <div className="mt-7 flex justify-center overflow-hidden px-6">
+                    <AnimatedTextCycleDemo />
+                  </div>
                 </AnimatedGroup>
 
                 <AnimatedGroup

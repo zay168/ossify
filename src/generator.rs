@@ -141,7 +141,7 @@ pub fn fix_repository(
 ) -> io::Result<FixReport> {
     let before = audit_repository(path, config)?;
     let selection = ScaffoldSelection::FromAudit {
-        report: before.clone(),
+        report: Box::new(before.clone()),
         overwrite_partials: options.overwrite,
     };
 
@@ -164,7 +164,7 @@ pub fn plan_fix_repository(
 ) -> io::Result<PlanReport> {
     let before = audit_repository(path, config)?;
     let selection = ScaffoldSelection::FromAudit {
-        report: before.clone(),
+        report: Box::new(before.clone()),
         overwrite_partials: options.overwrite,
     };
     let prepared = plan_scaffold(path, options, config, ScaffoldMode::Plan, &selection)?;
@@ -496,7 +496,7 @@ enum ScaffoldItem {
 enum ScaffoldSelection {
     All,
     FromAudit {
-        report: AuditReport,
+        report: Box<AuditReport>,
         overwrite_partials: bool,
     },
 }

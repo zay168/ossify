@@ -23,7 +23,16 @@ irm https://zay168.github.io/ossify/install.ps1 | iex
 curl -fsSL https://zay168.github.io/ossify/install.sh | sh
 ```
 
+The bootstrap installer also installs the managed workflow engine currently used by `ossify doctor workflow` so that GitHub Actions checks work immediately after install.
+If that engine is missing later, `ossify doctor workflow` will try to bootstrap the managed copy automatically before falling back to a warning.
+
 Landing page: [zay168.github.io/ossify](https://zay168.github.io/ossify/)
+
+## Project Status
+
+`ossify` is actively maintained by [@zay168](https://github.com/zay168).
+
+The project is ready for real repository audits and scaffolding workflows, but it is still evolving in public. The CLI surface is intended to stay stable when possible, breaking changes are called out explicitly, and serious contributors are welcome.
 
 ## Why
 
@@ -36,6 +45,24 @@ Landing page: [zay168.github.io/ossify](https://zay168.github.io/ossify/)
 - GitHub-aware files like `CODEOWNERS`, `dependabot.yml`, and release workflows
 
 The goal is simple: turn a vague repo surface into something that looks maintained, legible, and safer to adopt.
+
+## Compatibility and Support
+
+`ossify` targets:
+
+- Windows, with PowerShell-first installer and CLI flows
+- macOS, with a POSIX shell installer
+- Linux, with a POSIX shell installer
+
+Support is provided on a best-effort basis. The current release line is the priority, and older versions may not receive the same level of compatibility attention.
+
+## Versioning
+
+`ossify` intends to follow Semantic Versioning.
+
+- breaking changes are called out in the changelog and release notes
+- new functionality may ship as experimental when the workflow still needs real-world validation
+- installer, CLI, and output improvements are expected to stay conservative unless a release explicitly says otherwise
 
 ## V4
 
@@ -61,6 +88,8 @@ V4.2 makes `ossify` feel much more at home in a real terminal workflow.
 
 ```text
 ossify audit [path] [--config ossify.toml] [--strict] [--interactive]
+ossify doctor docs [path]
+ossify doctor workflow [path]
 ossify init [path] [--overwrite] [--license mit|apache-2.0] [--owner "@acme"] [--funding github:acme]
 ossify fix [path] [--plan] [--interactive] [--overwrite] [--license mit|apache-2.0] [--owner "@acme"] [--funding github:acme] [--config ossify.toml]
 ossify prompt [path] [--rule readme] [--count 0] [--config ossify.toml]
@@ -75,28 +104,33 @@ Global flags:
 --no-color
 ```
 
+## Usage
+
+Start with the trust-layer audit, then drill into documentation quality when you want a more focused pass:
+
+```text
+ossify audit .
+ossify doctor docs .
+ossify doctor workflow .
+ossify fix . --plan
+ossify prompt .
+```
+
 ## Example
 
 ```text
 > ossify audit . --interactive
 
-┌─ OSSIFY REPORT ──────────────────────────────────────────────────────────────┐
-│ Project: ossify (Rust cli via C:\repo\Cargo.toml)                           │
-│ Target: .                                                                   │
-│ Score: 84/100   Tier: promising                                             │
-│ Strict target: fail (minimum 85)                                            │
-│ Readiness meter: █████████████████████████░░░░░                              │
-└──────────────────────────────────────────────────────────────────────────────┘
+OSSIFY REPORT
+Project: ossify
+Target: .
+Score: 84/100
+Tier: promising
 
-┌─ Category Scores ────────────────────────┐  ┌─ Top Gaps ─────────────────────┐
-│ identity   ████████████████   92%        │  │ partial | README | install and │
-│ docs       ████████████░░░░   76%        │  │ usage flow still feel thin      │
-│ community  █████████████░░░   80%        │  │ missing | Dependabot | no       │
-│ automation ██████████░░░░░░   71%        │  │ update policy is present        │
-│ release    ███████████████░   88%        │  │ partial | Lint and format       │
-└──────────────────────────────────────────┘  │ signals | commands exist but   │
-                                              │ CI does not surface them yet    │
-                                              └─────────────────────────────────┘
+Top gaps
+- partial | README | install and usage flow still feel thin
+- missing | Dependabot | no update policy is present
+- partial | lint and format signals | commands exist but CI does not surface them yet
 ```
 
 ```text
@@ -111,7 +145,7 @@ Would scaffold files
   [created] .github/dependabot.yml
 
 Blocked or skipped
-  [skipped] .github/FUNDING.yml | FUNDING.yml generation requires `--funding`, for example `github:acme`.
+  [skipped] .github/FUNDING.yml | FUNDING.yml generation requires --funding, for example github:acme.
 
 Still manual after plan
   [partial] README examples and docs quality still need maintainer review
@@ -189,4 +223,33 @@ weight = 10
 
 `fix` remains conservative: it will not invent real tests, rewrite your manifest metadata, or replace editorial docs unless that file is already supported and you explicitly use `--overwrite`.
 
-`prompt` turns the current audit into a copy-pasteable fix prompt for an external coding agent, a teammate, or another AI workflow. By default it generates one long repo-wide prompt that bundles the current non-strong rules into a one-shot fix pass. Use `--rule` to target one gap precisely, or `--count` to limit how many issues the one-shot prompt includes. `--count 0` means “include every current gap”.
+`prompt` turns the current audit into a copy-pasteable fix prompt for an external coding agent, a teammate, or another AI workflow. By default it generates one long repo-wide prompt that bundles the current non-strong rules into a one-shot fix pass. Use `--rule` to target one gap precisely, or `--count` to limit how many issues the one-shot prompt includes. `--count 0` means "include every current gap".
+
+## Contributing
+
+Contributions are welcome, especially when they improve audit precision, keep scaffolding conservative, or tighten the maintainer experience.
+
+Start here:
+
+- [CONTRIBUTING.md](CONTRIBUTING.md)
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+
+The project is maintained primarily by [@zay168](https://github.com/zay168), and recurring contributors who consistently improve the project are welcome to grow into a more active role over time.
+
+## Security
+
+Please do not open a public issue for an exploitable vulnerability. Report security concerns privately first and include enough detail to reproduce and assess impact.
+
+- [SECURITY.md](SECURITY.md)
+
+## Support
+
+Bug reports, feature requests, and usage questions are welcome through the public issue tracker, with support handled on a best-effort basis.
+
+- [SUPPORT.md](SUPPORT.md)
+
+## Changelog
+
+Release history and breaking-change notes live in:
+
+- [CHANGELOG.md](CHANGELOG.md)

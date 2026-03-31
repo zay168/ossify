@@ -203,8 +203,7 @@ fn collect_files(root: &Path) -> io::Result<Vec<PathBuf>> {
     builder.git_exclude(true);
 
     for entry in builder.build() {
-        let entry =
-            entry.map_err(|error| io::Error::new(io::ErrorKind::Other, error.to_string()))?;
+        let entry = entry.map_err(|error| io::Error::other(error.to_string()))?;
         if !entry
             .file_type()
             .map(|value| value.is_file())
@@ -574,6 +573,7 @@ fn chunk_workflow(
     chunks
 }
 
+#[allow(clippy::too_many_arguments)]
 fn make_chunk(
     path: &Path,
     relative: &str,

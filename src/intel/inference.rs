@@ -185,7 +185,7 @@ fn infer_manifest_presence(
     let context = contexts_for(
         index,
         knowledge,
-        &[project.name.clone()],
+        std::slice::from_ref(&project.name),
         input.location.as_deref(),
         2,
     );
@@ -385,7 +385,7 @@ fn infer_workflow(
         let contexts = contexts_for(
             index,
             knowledge,
-            &[command.clone()],
+            std::slice::from_ref(command),
             input.location.as_deref(),
             1,
         );
@@ -436,7 +436,7 @@ fn infer_tests(
         let contexts = contexts_for(
             index,
             knowledge,
-            &[command.clone()],
+            std::slice::from_ref(command),
             input.location.as_deref(),
             1,
         );
@@ -463,7 +463,7 @@ fn infer_lint_and_format(
         let contexts = contexts_for(
             index,
             knowledge,
-            &[command.clone()],
+            std::slice::from_ref(command),
             input.location.as_deref(),
             1,
         );
@@ -497,7 +497,7 @@ fn infer_release(
         let contexts = contexts_for(
             index,
             knowledge,
-            &[command.clone()],
+            std::slice::from_ref(command),
             input.location.as_deref(),
             1,
         );

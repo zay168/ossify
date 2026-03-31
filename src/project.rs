@@ -383,38 +383,40 @@ fn parse_rust_project(
         .unwrap_or_else(|_| TomlValue::Table(Default::default()));
     let package = value.get("package").and_then(|entry| entry.as_table());
 
-    let mut metadata = ProjectMetadata::default();
-    metadata.description = package
-        .and_then(|table| table.get("description"))
-        .and_then(as_toml_string);
-    metadata.license = package
-        .and_then(|table| table.get("license"))
-        .and_then(as_toml_string);
-    metadata.repository = package
-        .and_then(|table| table.get("repository"))
-        .and_then(as_toml_string);
-    metadata.homepage = package
-        .and_then(|table| table.get("homepage"))
-        .and_then(as_toml_string);
-    metadata.version = package
-        .and_then(|table| table.get("version"))
-        .and_then(as_toml_string);
-    metadata.keywords = package
-        .and_then(|table| table.get("keywords"))
-        .map(as_toml_array_strings)
-        .unwrap_or_default();
-    metadata.categories = package
-        .and_then(|table| table.get("categories"))
-        .map(as_toml_array_strings)
-        .unwrap_or_default();
-    metadata.dependencies = collect_toml_keys(
-        &value,
-        &["dependencies", "dev-dependencies", "build-dependencies"],
-    );
-    metadata.has_bin = value.get("bin").is_some()
-        || root.join("src/main.rs").is_file()
-        || root.join("src/bin").is_dir();
-    metadata.has_lib = value.get("lib").is_some() || root.join("src/lib.rs").is_file();
+    let metadata = ProjectMetadata {
+        description: package
+            .and_then(|table| table.get("description"))
+            .and_then(as_toml_string),
+        license: package
+            .and_then(|table| table.get("license"))
+            .and_then(as_toml_string),
+        repository: package
+            .and_then(|table| table.get("repository"))
+            .and_then(as_toml_string),
+        homepage: package
+            .and_then(|table| table.get("homepage"))
+            .and_then(as_toml_string),
+        version: package
+            .and_then(|table| table.get("version"))
+            .and_then(as_toml_string),
+        keywords: package
+            .and_then(|table| table.get("keywords"))
+            .map(as_toml_array_strings)
+            .unwrap_or_default(),
+        categories: package
+            .and_then(|table| table.get("categories"))
+            .map(as_toml_array_strings)
+            .unwrap_or_default(),
+        dependencies: collect_toml_keys(
+            &value,
+            &["dependencies", "dev-dependencies", "build-dependencies"],
+        ),
+        has_bin: value.get("bin").is_some()
+            || root.join("src/main.rs").is_file()
+            || root.join("src/bin").is_dir(),
+        has_lib: value.get("lib").is_some() || root.join("src/lib.rs").is_file(),
+        ..ProjectMetadata::default()
+    };
 
     let name = package
         .and_then(|table| table.get("name"))
@@ -430,42 +432,43 @@ fn parse_node_project(
     fallback_name: &str,
 ) -> (String, ProjectMetadata) {
     let value = serde_json::from_str::<JsonValue>(contents).unwrap_or(JsonValue::Null);
-    let mut metadata = ProjectMetadata::default();
-    metadata.description = value.get("description").and_then(as_json_string);
-    metadata.license = value.get("license").and_then(as_json_string);
-    metadata.repository = parse_node_repository(value.get("repository"));
-    metadata.homepage = value.get("homepage").and_then(as_json_string);
-    metadata.version = value.get("version").and_then(as_json_string);
-    metadata.keywords = value
-        .get("keywords")
-        .map(as_json_array_strings)
-        .unwrap_or_default();
-    metadata.categories = Vec::new();
-    metadata.scripts = value
-        .get("scripts")
-        .and_then(|entry| entry.as_object())
-        .map(|table| {
-            table
-                .values()
-                .filter_map(as_json_string)
-                .collect::<Vec<String>>()
-        })
-        .unwrap_or_default();
-    metadata.dependencies = collect_json_keys(
-        &value,
-        &[
-            "dependencies",
-            "devDependencies",
-            "peerDependencies",
-            "optionalDependencies",
-        ],
-    );
-    metadata.has_bin = value.get("bin").is_some();
-    metadata.has_lib = value.get("main").is_some()
-        || value.get("exports").is_some()
-        || value.get("types").is_some()
-        || root.join("src/index.ts").is_file()
-        || root.join("src/index.js").is_file();
+    let metadata = ProjectMetadata {
+        description: value.get("description").and_then(as_json_string),
+        license: value.get("license").and_then(as_json_string),
+        repository: parse_node_repository(value.get("repository")),
+        homepage: value.get("homepage").and_then(as_json_string),
+        version: value.get("version").and_then(as_json_string),
+        keywords: value
+            .get("keywords")
+            .map(as_json_array_strings)
+            .unwrap_or_default(),
+        categories: Vec::new(),
+        scripts: value
+            .get("scripts")
+            .and_then(|entry| entry.as_object())
+            .map(|table| {
+                table
+                    .values()
+                    .filter_map(as_json_string)
+                    .collect::<Vec<String>>()
+            })
+            .unwrap_or_default(),
+        dependencies: collect_json_keys(
+            &value,
+            &[
+                "dependencies",
+                "devDependencies",
+                "peerDependencies",
+                "optionalDependencies",
+            ],
+        ),
+        has_bin: value.get("bin").is_some(),
+        has_lib: value.get("main").is_some()
+            || value.get("exports").is_some()
+            || value.get("types").is_some()
+            || root.join("src/index.ts").is_file()
+            || root.join("src/index.js").is_file(),
+    };
 
     let name = value
         .get("name")
@@ -489,73 +492,74 @@ fn parse_python_project(
         .and_then(|entry| entry.get("poetry"))
         .and_then(|entry| entry.as_table());
 
-    let mut metadata = ProjectMetadata::default();
-    metadata.description = project
-        .and_then(|table| table.get("description"))
-        .and_then(as_toml_string)
-        .or_else(|| {
-            poetry
-                .and_then(|table| table.get("description"))
-                .and_then(as_toml_string)
-        });
-    metadata.license = project
-        .and_then(|table| table.get("license"))
-        .and_then(as_toml_string)
-        .or_else(|| {
-            poetry
-                .and_then(|table| table.get("license"))
-                .and_then(as_toml_string)
-        });
-    metadata.repository = project
-        .and_then(|table| table.get("repository"))
-        .and_then(as_toml_string)
-        .or_else(|| {
-            poetry
-                .and_then(|table| table.get("repository"))
-                .and_then(as_toml_string)
-        });
-    metadata.homepage = project
-        .and_then(|table| table.get("homepage"))
-        .and_then(as_toml_string)
-        .or_else(|| {
-            poetry
-                .and_then(|table| table.get("homepage"))
-                .and_then(as_toml_string)
-        });
-    metadata.version = project
-        .and_then(|table| table.get("version"))
-        .and_then(as_toml_string)
-        .or_else(|| {
-            poetry
-                .and_then(|table| table.get("version"))
-                .and_then(as_toml_string)
-        });
-    metadata.keywords = project
-        .and_then(|table| table.get("keywords"))
-        .map(as_toml_array_strings)
-        .or_else(|| {
-            poetry
-                .and_then(|table| table.get("keywords"))
-                .map(as_toml_array_strings)
-        })
-        .unwrap_or_default();
-    metadata.categories = Vec::new();
-    metadata.scripts = collect_python_scripts(&value);
-    metadata.dependencies = collect_python_dependencies(&value);
-    metadata.has_bin = value
-        .get("project")
-        .and_then(|entry| entry.get("scripts"))
-        .is_some()
-        || value
-            .get("tool")
-            .and_then(|entry| entry.get("poetry"))
+    let metadata = ProjectMetadata {
+        description: project
+            .and_then(|table| table.get("description"))
+            .and_then(as_toml_string)
+            .or_else(|| {
+                poetry
+                    .and_then(|table| table.get("description"))
+                    .and_then(as_toml_string)
+            }),
+        license: project
+            .and_then(|table| table.get("license"))
+            .and_then(as_toml_string)
+            .or_else(|| {
+                poetry
+                    .and_then(|table| table.get("license"))
+                    .and_then(as_toml_string)
+            }),
+        repository: project
+            .and_then(|table| table.get("repository"))
+            .and_then(as_toml_string)
+            .or_else(|| {
+                poetry
+                    .and_then(|table| table.get("repository"))
+                    .and_then(as_toml_string)
+            }),
+        homepage: project
+            .and_then(|table| table.get("homepage"))
+            .and_then(as_toml_string)
+            .or_else(|| {
+                poetry
+                    .and_then(|table| table.get("homepage"))
+                    .and_then(as_toml_string)
+            }),
+        version: project
+            .and_then(|table| table.get("version"))
+            .and_then(as_toml_string)
+            .or_else(|| {
+                poetry
+                    .and_then(|table| table.get("version"))
+                    .and_then(as_toml_string)
+            }),
+        keywords: project
+            .and_then(|table| table.get("keywords"))
+            .map(as_toml_array_strings)
+            .or_else(|| {
+                poetry
+                    .and_then(|table| table.get("keywords"))
+                    .map(as_toml_array_strings)
+            })
+            .unwrap_or_default(),
+        categories: Vec::new(),
+        scripts: collect_python_scripts(&value),
+        dependencies: collect_python_dependencies(&value),
+        has_bin: value
+            .get("project")
             .and_then(|entry| entry.get("scripts"))
-            .is_some();
-    metadata.has_lib = root.join("src").is_dir()
-        || root.join(fallback_name.replace('-', "_")).is_dir()
-        || root
-            .join(format!("{}.py", fallback_name.replace('-', "_")))
-            .is_file();
+            .is_some()
+            || value
+                .get("tool")
+                .and_then(|entry| entry.get("poetry"))
+                .and_then(|entry| entry.get("scripts"))
+                .is_some(),
+        has_lib: root.join("src").is_dir()
+            || root.join(fallback_name.replace('-', "_")).is_dir()
+            || root
+                .join(format!("{}.py", fallback_name.replace('-', "_")))
+                .is_file(),
+    };
 
     let name = project
         .and_then(|table| table.get("name"))
@@ -575,66 +579,69 @@ fn parse_python_requirements_project(
     contents: &str,
     fallback_name: &str,
 ) -> (String, ProjectMetadata) {
-    let mut metadata = ProjectMetadata::default();
-    metadata.dependencies = contents
-        .lines()
-        .map(str::trim)
-        .filter(|line| !line.is_empty() && !line.starts_with('#'))
-        .filter_map(|line| {
-            let requirement = line
-                .split_once('#')
-                .map(|(prefix, _)| prefix.trim())
-                .unwrap_or(line);
-            let package = requirement
-                .split(['=', '<', '>', '!', '~', '['])
-                .next()
-                .unwrap_or_default()
-                .trim()
-                .to_lowercase();
-            if package.is_empty() {
-                None
-            } else {
-                Some(package)
-            }
-        })
-        .collect();
-    metadata.scripts = collect_launcher_scripts(root);
-    metadata.has_bin = false;
-    metadata.has_lib = root.join("src").is_dir()
-        || root.join(fallback_name.replace('-', "_")).is_dir()
-        || root
-            .join(format!("{}.py", fallback_name.replace('-', "_")))
-            .is_file();
+    let metadata = ProjectMetadata {
+        dependencies: contents
+            .lines()
+            .map(str::trim)
+            .filter(|line| !line.is_empty() && !line.starts_with('#'))
+            .filter_map(|line| {
+                let requirement = line
+                    .split_once('#')
+                    .map(|(prefix, _)| prefix.trim())
+                    .unwrap_or(line);
+                let package = requirement
+                    .split(['=', '<', '>', '!', '~', '['])
+                    .next()
+                    .unwrap_or_default()
+                    .trim()
+                    .to_lowercase();
+                if package.is_empty() {
+                    None
+                } else {
+                    Some(package)
+                }
+            })
+            .collect(),
+        scripts: collect_launcher_scripts(root),
+        has_bin: false,
+        has_lib: root.join("src").is_dir()
+            || root.join(fallback_name.replace('-', "_")).is_dir()
+            || root
+                .join(format!("{}.py", fallback_name.replace('-', "_")))
+                .is_file(),
+        ..ProjectMetadata::default()
+    };
 
     (fallback_name.to_owned(), metadata)
 }
 
 fn parse_go_project(root: &Path, contents: &str, fallback_name: &str) -> (String, ProjectMetadata) {
-    let mut metadata = ProjectMetadata::default();
-    metadata.dependencies = parse_go_dependencies(contents);
-    metadata.has_bin = root.join("cmd").is_dir() || root.join("main.go").is_file();
-    metadata.has_lib = fs::read_dir(root)
-        .ok()
-        .into_iter()
-        .flat_map(|entries| entries.filter_map(Result::ok))
-        .any(|entry| {
-            entry
-                .path()
-                .extension()
-                .and_then(|ext| ext.to_str())
-                .map(|ext| ext == "go")
-                .unwrap_or(false)
-        });
-
     let module = parse_go_module(contents).unwrap_or_else(|| fallback_name.to_owned());
     let name = module
         .split('/')
-        .last()
+        .next_back()
         .filter(|value| !value.is_empty())
         .unwrap_or(fallback_name)
         .to_owned();
 
-    metadata.repository = parse_go_repository(&module);
+    let metadata = ProjectMetadata {
+        repository: parse_go_repository(&module),
+        dependencies: parse_go_dependencies(contents),
+        has_bin: root.join("cmd").is_dir() || root.join("main.go").is_file(),
+        has_lib: fs::read_dir(root)
+            .ok()
+            .into_iter()
+            .flat_map(|entries| entries.filter_map(Result::ok))
+            .any(|entry| {
+                entry
+                    .path()
+                    .extension()
+                    .and_then(|ext| ext.to_str())
+                    .map(|ext| ext == "go")
+                    .unwrap_or(false)
+            }),
+        ..ProjectMetadata::default()
+    };
 
     (name, metadata)
 }
@@ -852,7 +859,7 @@ fn collect_json_keys(value: &JsonValue, keys: &[&str]) -> Vec<String> {
 
 fn dependency_name(value: &str) -> String {
     value
-        .split(|ch: char| matches!(ch, ' ' | '<' | '>' | '=' | '!' | '[' | ';'))
+        .split([' ', '<', '>', '=', '!', '[', ';'])
         .next()
         .unwrap_or(value)
         .trim()
