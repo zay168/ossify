@@ -15,7 +15,7 @@ categories = ["command-line-utilities", "development-tools"]
 arboard = "3.6.1"
 blake3 = "1.8.2"
 clap = { version = "4.5.37", features = ["derive"] }
-crossterm = "0.28.1"
+crossterm = "0.29.0"
 flate2 = "1.1.9"
 gix = "0.81.0"
 ignore = "0.4.25"
