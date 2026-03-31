@@ -16,9 +16,19 @@ import {
 import { AnimatedGroup } from "@/components/ui/animated-group";
 import { AnimatedTextCycleDemo } from "@/components/ui/animated-text-cycle-demo";
 import { Button } from "@/components/ui/button";
-import { FlickeringFooter } from "@/components/ui/flickering-footer";
+import { DeferredSection } from "@/components/ui/deferred-section";
 import { TextEffect } from "@/components/ui/text-effect";
 import { cn } from "@/lib/utils";
+
+const LazyThreeDTestimonialsDemo = React.lazy(async () => {
+  const module = await import("@/components/ui/3d-testimonails-demo");
+  return { default: module.ThreeDTestimonialsDemo };
+});
+
+const LazyFlickeringFooter = React.lazy(async () => {
+  const module = await import("@/components/ui/flickering-footer");
+  return { default: module.FlickeringFooter };
+});
 
 const transitionVariants = {
   item: {
@@ -54,7 +64,19 @@ const trustSignals = [
   { label: "Signals that make a repo safer to adopt", icon: ShieldCheck },
 ];
 
+const proofPoints = [
+  "Readable installs, tighter workflow hygiene, and fewer repo-level unknowns.",
+  "A stronger first impression for contributors, evaluators, and future maintainers.",
+  "Signals that feel curated instead of accidentally healthy.",
+];
+
 const heroBackgroundUrl = `${import.meta.env.BASE_URL}hero-background.png`;
+
+const belowFoldPlaceholder =
+  "relative h-[32rem] w-full overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(15,21,37,0.88),rgba(8,13,24,0.94))]";
+
+const footerPlaceholder =
+  "relative mt-12 h-64 w-full overflow-hidden border-t border-white/10 bg-[linear-gradient(180deg,rgba(8,13,24,0.1),rgba(8,13,24,0.72))]";
 
 export function HeroSection() {
   return (
@@ -313,6 +335,69 @@ export function HeroSection() {
           </div>
         </section>
 
+        <section className="mx-auto max-w-6xl px-6 pb-24">
+          <AnimatedGroup variants={transitionVariants} className="text-center">
+            <div className="mx-auto max-w-3xl">
+              <p className="text-xs uppercase tracking-[0.28em] text-primary">
+                Social proof, without flattening the product
+              </p>
+              <h2 className="mt-4 text-balance font-serif text-4xl tracking-[-0.05em] md:text-[3.15rem]">
+                The kind of repo feedback ossify is built to improve.
+              </h2>
+              <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
+                The section keeps the 3D testimonial idea, but with calmer perspective,
+                fuller cards, and a layout that breathes like the rest of the landing.
+              </p>
+            </div>
+
+            <div className="mx-auto mt-8 grid max-w-5xl gap-3 md:grid-cols-3">
+              {proofPoints.map((point) => (
+                <div
+                  key={point}
+                  className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-left"
+                >
+                  <div className="mt-0.5 size-2 rounded-full bg-primary shadow-[0_0_16px_rgba(125,211,252,0.65)]" />
+                  <p className="text-sm leading-7 text-muted-foreground">{point}</p>
+                </div>
+              ))}
+            </div>
+          </AnimatedGroup>
+
+          <DeferredSection
+            className="mt-10 [content-visibility:auto] [contain-intrinsic-size:540px]"
+            minHeight={540}
+            placeholder={
+              <div className={belowFoldPlaceholder}>
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(125,211,252,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(244,191,114,0.1),transparent_22%)]" />
+              </div>
+            }
+          >
+            <React.Suspense
+              fallback={
+                <div className={belowFoldPlaceholder}>
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(125,211,252,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(244,191,114,0.1),transparent_22%)]" />
+                </div>
+              }
+            >
+              <AnimatedGroup
+                variants={{
+                  container: {
+                    visible: {
+                      transition: {
+                        staggerChildren: 0.06,
+                        delayChildren: 0.15,
+                      },
+                    },
+                  },
+                  ...transitionVariants,
+                }}
+              >
+                <LazyThreeDTestimonialsDemo />
+              </AnimatedGroup>
+            </React.Suspense>
+          </DeferredSection>
+        </section>
+
         <section id="install" className="mx-auto max-w-6xl px-6 pb-24">
           <div id="flow" className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
             <div className="rounded-[1.75rem] border border-white/10 bg-muted/30 p-8">
@@ -348,7 +433,15 @@ export function HeroSection() {
           </div>
         </section>
 
-        <FlickeringFooter />
+        <DeferredSection
+          className="[content-visibility:auto] [contain-intrinsic-size:420px]"
+          minHeight={420}
+          placeholder={<div className={footerPlaceholder} />}
+        >
+          <React.Suspense fallback={<div className={footerPlaceholder} />}>
+            <LazyFlickeringFooter />
+          </React.Suspense>
+        </DeferredSection>
       </main>
     </>
   );
