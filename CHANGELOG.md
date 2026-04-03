@@ -6,15 +6,12 @@ The project intends to follow SemVer. Breaking changes and experimental areas sh
 
 ## Unreleased
 
-### Added
-
-- `ossify doctor docs` for focused Markdown quality checks, including broken local links, missing anchors, and README hygiene.
-- `ossify doctor workflow` for subprocess-based GitHub Actions checks through `actionlint`, with automatic managed-engine bootstrap when the external binary is missing.
-
 ## 0.1.0 - 2026-03-30
 
 ### Added
 
+- `ossify doctor docs` for focused Markdown quality checks, including broken local links, missing anchors, and README hygiene.
+- `ossify doctor workflow` for subprocess-based GitHub Actions checks through `actionlint`, with automatic managed-engine bootstrap when the external binary is missing.
 - Maintainer-grade repository audits with category scoring and repo profiling.
 - Optional interactive terminal exploration for `audit` and `fix --plan`.
 - One-shot and rule-specific prompt generation for external coding workflows.
