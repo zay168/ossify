@@ -40,6 +40,7 @@ fn main() -> ExitCode {
         format: args.output_format(),
         color: matches!(args.output_format(), OutputFormat::Human) && args.color_choice().enabled(),
         interactive: false,
+        output_path: args.output_path(),
     };
 
     match args.command_or_default() {
@@ -99,10 +100,9 @@ fn run_doctor(command: DoctorArgs, output: &OutputOptions) -> ExitCode {
 }
 
 fn run_audit(command: AuditArgs, output: &OutputOptions) -> ExitCode {
-    let output = OutputOptions {
-        interactive: command.interactive,
-        ..*output
-    };
+    let mut output = output.clone();
+    output.interactive = command.interactive;
+
     let config = match load_config(&command.path, command.config.as_deref()) {
         Ok(config) => config,
         Err(error) => {
@@ -162,10 +162,9 @@ fn run_init(command: ScaffoldArgs, output: &OutputOptions) -> ExitCode {
 }
 
 fn run_fix(command: FixArgs, output: &OutputOptions) -> ExitCode {
-    let output = OutputOptions {
-        interactive: command.interactive,
-        ..*output
-    };
+    let mut output = output.clone();
+    output.interactive = command.interactive;
+
     let config = match load_config(&command.scaffold.path, command.scaffold.config.as_deref()) {
         Ok(config) => config,
         Err(error) => {

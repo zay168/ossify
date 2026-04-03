@@ -1,5 +1,7 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::io;
+use std::fs;
+use std::io::{self, Write};
+use std::path::PathBuf;
 
 use crossterm::terminal;
 use serde_json::json;
@@ -12,11 +14,12 @@ use crate::generator::{FixReport, InitReport, PlanReport};
 use crate::prompt::BugPromptReport;
 use crate::ui::{self, UiReport};
 
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct OutputOptions {
     pub format: OutputFormat,
     pub color: bool,
     pub interactive: bool,
+    pub output_path: Option<PathBuf>,
 }
 
 pub fn print_audit_report(report: &AuditReport, options: &OutputOptions) -> io::Result<()> {
@@ -26,43 +29,27 @@ pub fn print_audit_report(report: &AuditReport, options: &OutputOptions) -> io::
             if options.interactive && ui::supports_interactive() {
                 ui::run_interactive_audit(model)
             } else {
-                println!("{}", ui::render_audit(&model, options.color));
-                Ok(())
+                write_report(&ui::render_audit(&model, options.color), options)
             }
         }
-        OutputFormat::Json => {
-            println!("{}", render_audit_json(report));
-            Ok(())
-        }
+        OutputFormat::Json => write_report(&render_audit_json(report), options),
     }
 }
 
 pub fn print_init_report(report: &InitReport, options: &OutputOptions) -> io::Result<()> {
     match options.format {
-        OutputFormat::Human => {
-            println!("{}", ui::render_init_report(report, options.color));
-            Ok(())
-        }
-        OutputFormat::Json => {
-            println!("{}", render_init_json(report));
-            Ok(())
-        }
+        OutputFormat::Human => write_report(&ui::render_init_report(report, options.color), options),
+        OutputFormat::Json => write_report(&render_init_json(report), options),
     }
 }
 
 pub fn print_fix_report(report: &FixReport, options: &OutputOptions) -> io::Result<()> {
     match options.format {
-        OutputFormat::Human => {
-            println!(
-                "{}",
-                ui::render_fix(&UiReport::from_fix(report), options.color)
-            );
-            Ok(())
-        }
-        OutputFormat::Json => {
-            println!("{}", render_fix_json(report));
-            Ok(())
-        }
+        OutputFormat::Human => write_report(
+            &ui::render_fix(&UiReport::from_fix(report), options.color),
+            options,
+        ),
+        OutputFormat::Json => write_report(&render_fix_json(report), options),
     }
 }
 
@@ -73,14 +60,10 @@ pub fn print_plan_report(report: &PlanReport, options: &OutputOptions) -> io::Re
             if options.interactive && ui::supports_interactive() {
                 ui::run_interactive_plan(model)
             } else {
-                println!("{}", ui::render_plan(&model, options.color));
-                Ok(())
+                write_report(&ui::render_plan(&model, options.color), options)
             }
         }
-        OutputFormat::Json => {
-            println!("{}", render_plan_json(report));
-            Ok(())
-        }
+        OutputFormat::Json => write_report(&render_plan_json(report), options),
     }
 }
 
@@ -90,7 +73,12 @@ pub fn print_bug_prompt_report(
 ) -> io::Result<()> {
     match options.format {
         OutputFormat::Human => {
-            println!("{}", ui::render_prompt_report(report, options.color));
+            let rendered = ui::render_prompt_report(report, options.color);
+            if let Some(path) = &options.output_path {
+                write_report(&rendered, options)?;
+            } else {
+                println!("{rendered}");
+            }
             let notice = match copy_prompt_report(report) {
                 Ok(()) => String::from(PROMPT_COPIED_MESSAGE),
                 Err(error) => format!("{PROMPT_COPY_FAILED_PREFIX} {error}"),
@@ -98,10 +86,7 @@ pub fn print_bug_prompt_report(
             println!("\n{notice}");
             Ok(())
         }
-        OutputFormat::Json => {
-            println!("{}", render_bug_prompt_json(report));
-            Ok(())
-        }
+        OutputFormat::Json => write_report(&render_bug_prompt_json(report), options),
     }
 }
 
@@ -110,14 +95,8 @@ pub fn print_docs_doctor_report(
     options: &OutputOptions,
 ) -> io::Result<()> {
     match options.format {
-        OutputFormat::Human => {
-            println!("{}", render_docs_doctor_human(report));
-            Ok(())
-        }
-        OutputFormat::Json => {
-            println!("{}", render_docs_doctor_json(report));
-            Ok(())
-        }
+        OutputFormat::Human => write_report(&render_docs_doctor_human(report), options),
+        OutputFormat::Json => write_report(&render_docs_doctor_json(report), options),
     }
 }
 
@@ -126,14 +105,23 @@ pub fn print_workflow_doctor_report(
     options: &OutputOptions,
 ) -> io::Result<()> {
     match options.format {
-        OutputFormat::Human => {
-            println!("{}", render_workflow_doctor_human(report, options.color));
-            Ok(())
+        OutputFormat::Human => write_report(&render_workflow_doctor_human(report, options.color), options),
+        OutputFormat::Json => write_report(&render_workflow_doctor_json(report), options),
+    }
+}
+
+fn write_report(content: &str, options: &OutputOptions) -> io::Result<()> {
+    if let Some(path) = &options.output_path {
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?;
         }
-        OutputFormat::Json => {
-            println!("{}", render_workflow_doctor_json(report));
-            Ok(())
-        }
+        let mut file = fs::File::create(path)?;
+        file.write_all(content.as_bytes())?;
+        file.write_all(b"\n")?;
+        Ok(())
+    } else {
+        println!("{content}");
+        Ok(())
     }
 }
 
