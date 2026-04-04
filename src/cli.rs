@@ -97,6 +97,8 @@ pub struct AuditArgs {
     pub strict: bool,
     #[arg(long, conflicts_with = "json")]
     pub interactive: bool,
+    #[arg(short, long)]
+    pub output: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, Args)]
@@ -113,6 +115,8 @@ pub struct ScaffoldArgs {
     pub funding: Option<String>,
     #[arg(long)]
     pub config: Option<PathBuf>,
+    #[arg(short, long)]
+    pub output: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, Args)]
@@ -123,6 +127,8 @@ pub struct FixArgs {
     pub plan: bool,
     #[arg(long, conflicts_with = "json", requires = "plan")]
     pub interactive: bool,
+    #[arg(short, long)]
+    pub output: Option<PathBuf>,
 }
 
 #[derive(Debug, Clone, Args)]
@@ -143,6 +149,8 @@ pub struct PromptArgs {
     pub rule: Option<String>,
     #[arg(long, default_value_t = 0)]
     pub count: usize,
+    #[arg(short, long)]
+    pub output: Option<PathBuf>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
@@ -227,7 +235,38 @@ impl ParsedArgs {
         }
     }
 
+    pub fn output_path(&self) -> Option<PathBuf> {
+        match self.command.as_ref() {
+            Some(Command::Audit(command)) => command.output.clone(),
+            Some(Command::Fix(command)) => {
+                command.output.clone().or_else(|| command.scaffold.output.clone())
+            }
+            Some(Command::Prompt(command)) => command.output.clone(),
+            Some(Command::Init(command)) => command.output.clone(),
+            _ => None,
+        }
+    }
+
     fn validate(self) -> Result<Self, clap::Error> {
+        let output_path = self.output_path();
+
+        if let Some(path) = output_path {
+            let valid = match self.command.as_ref() {
+                Some(Command::Audit(_)) => self.json,
+                Some(Command::Fix(command)) => self.json || command.plan,
+                Some(Command::Prompt(_)) => self.json,
+                Some(Command::Init(_)) => self.json,
+                _ => false,
+            };
+
+            if !valid {
+                return Err(Self::command().error(
+                    clap::error::ErrorKind::ArgumentConflict,
+                    "`--output` can only be used with `--json` (or `--plan` for `fix`).",
+                ));
+            }
+        }
+
         if self.json {
             let interactive = match self.command.as_ref() {
                 Some(Command::Audit(command)) => command.interactive,
