@@ -1,0 +1,46 @@
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+      - duplicate
+  categories:
+    - title: CLI and scoring
+      labels:
+        - cli
+        - scoring
+        - audit
+    - title: Doctors and managed engines
+      labels:
+        - doctor
+        - engines
+        - deps
+        - release
+        - workflow
+    - title: Landing and public docs
+      labels:
+        - landing
+        - docs
+        - netlify
+    - title: Release operations
+      labels:
+        - release-ops
+        - packaging
+        - changelog
+    - title: Other changes
+      labels:
+        - "*"
+
+template: |
+  ## What shipped
+
+  $CHANGES
+
+  ## Install
+
+  - PowerShell: `irm https://ossify-react.netlify.app/install.ps1 | iex`
+  - macOS / Linux: `curl -fsSL https://ossify-react.netlify.app/install.sh | sh`
+
+  ## Public surfaces
+
+  - Landing: [ossify-react.netlify.app/ossify](https://ossify-react.netlify.app/ossify/)
+  - Changelog: [CHANGELOG.md](https://github.com/zay168/ossify/blob/main/CHANGELOG.md)

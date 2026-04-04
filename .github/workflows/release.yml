@@ -56,6 +56,7 @@ jobs:
           cp README.md LICENSE dist/
           cp target/${{ matrix.target }}/release/${{ matrix.binary_name }} dist/${{ matrix.binary_name }}
           tar -czf ${{ matrix.archive_name }} -C dist .
+          shasum -a 256 ${{ matrix.archive_name }} > ${{ matrix.archive_name }}.sha256
 
       - name: Package release archive (windows)
         if: runner.os == 'Windows'
@@ -66,12 +67,16 @@ jobs:
           Copy-Item LICENSE dist\LICENSE
           Copy-Item target/${{ matrix.target }}/release/${{ matrix.binary_name }} dist\${{ matrix.binary_name }}
           Compress-Archive -Path dist\* -DestinationPath ${{ matrix.archive_name }}
+          $hash = Get-FileHash -Algorithm SHA256 ${{ matrix.archive_name }}
+          "{0}  {1}" -f $hash.Hash.ToLower(), (Split-Path -Leaf $hash.Path) | Set-Content "${{ matrix.archive_name }}.sha256"
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.archive_name }}
-          path: ${{ matrix.archive_name }}
+          path: |
+            ${{ matrix.archive_name }}
+            ${{ matrix.archive_name }}.sha256
 
   publish:
     name: publish-release
@@ -91,4 +96,5 @@ jobs:
           files: |
             dist/**/*.zip
             dist/**/*.tar.gz
+            dist/**/*.sha256
           generate_release_notes: true
