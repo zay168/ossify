@@ -9,6 +9,7 @@ type DeferredSectionProps = {
   rootMargin?: string;
   placeholder?: React.ReactNode;
   idleTimeoutMs?: number;
+  hydrateOnIdle?: boolean;
 };
 
 type IdleCapableWindow = Window &
@@ -29,6 +30,7 @@ export function DeferredSection({
   rootMargin = "280px 0px",
   placeholder = null,
   idleTimeoutMs = 1800,
+  hydrateOnIdle = false,
 }: DeferredSectionProps) {
   const containerRef = React.useRef<HTMLDivElement>(null);
   const [shouldMount, setShouldMount] = React.useState(false);
@@ -54,6 +56,12 @@ export function DeferredSection({
 
     const idleWindow = window as IdleCapableWindow;
     let cleanupIdle: (() => void) | undefined;
+
+    if (!hydrateOnIdle) {
+      return () => {
+        observer.disconnect();
+      };
+    }
 
     if (idleWindow.requestIdleCallback) {
       const idleId = idleWindow.requestIdleCallback(enable, { timeout: idleTimeoutMs });

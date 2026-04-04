@@ -2,11 +2,10 @@
 
 import { ChevronRightIcon } from "@radix-ui/react-icons";
 import {
-  BadgeCheck,
-  Binary,
+  Boxes,
+  FileText,
+  RadioTower,
   ShieldCheck,
-  Sparkles,
-  WandSparkles,
 } from "lucide-react";
 import { ClassValue, clsx } from "clsx";
 import * as Color from "color-bits";
@@ -70,11 +69,11 @@ const ComplianceBadge = ({
   icon: React.ComponentType<{ className?: string }>;
   label: string;
 }) => (
-  <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-muted-foreground">
+  <div className="inline-flex shrink-0 items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-muted-foreground">
     <div className="rounded-full border border-white/10 bg-white/[0.06] p-1.5">
       <Icon className="size-4 text-primary" />
     </div>
-    <span>{label}</span>
+    <span className="whitespace-nowrap">{label}</span>
   </div>
 );
 
@@ -92,23 +91,17 @@ export const Icons = {
       </span>
     </div>
   ),
-  soc2: ({ className }: { className?: string }) => (
-    <ComplianceBadge icon={ShieldCheck} label="SOC 2" />
+  managed: ({ className }: { className?: string }) => (
+    <ComplianceBadge icon={Boxes} label="Managed engines" />
   ),
-  soc2Dark: ({ className }: { className?: string }) => (
-    <ComplianceBadge icon={ShieldCheck} label="SOC 2" />
+  release: ({ className }: { className?: string }) => (
+    <ComplianceBadge icon={FileText} label="Release notes" />
   ),
-  hipaa: ({ className }: { className?: string }) => (
-    <ComplianceBadge icon={BadgeCheck} label="Security" />
+  trust: ({ className }: { className?: string }) => (
+    <ComplianceBadge icon={ShieldCheck} label="Trust surface" />
   ),
-  hipaaDark: ({ className }: { className?: string }) => (
-    <ComplianceBadge icon={BadgeCheck} label="Security" />
-  ),
-  gdpr: ({ className }: { className?: string }) => (
-    <ComplianceBadge icon={Binary} label="Offline" />
-  ),
-  gdprDark: ({ className }: { className?: string }) => (
-    <ComplianceBadge icon={Binary} label="Offline" />
+  offline: ({ className }: { className?: string }) => (
+    <ComplianceBadge icon={RadioTower} label="Offline-first" />
   ),
 };
 
@@ -374,7 +367,7 @@ export const siteConfig = {
     badge: "Launch-ready trust signals",
     title: "Turn rough repos into projects people trust",
     description:
-      "Audit maintainers signals, preview safe fixes, and scaffold the missing trust layer around your repository without losing control.",
+      "Audit docs, deps, workflow, and release signals from one CLI, then preview safe fixes without losing maintainer control.",
     cta: {
       primary: {
         text: "Install ossify",
@@ -388,30 +381,21 @@ export const siteConfig = {
   },
   footerLinks: [
     {
-      title: "Product",
-      links: [
-        { id: 1, title: "Audit", url: "#signals" },
-        { id: 2, title: "Fix Plan", url: "#flow" },
-        { id: 3, title: "Install", url: "#install" },
-        { id: 4, title: "Prompt", url: "https://github.com/zay168/ossify" },
-      ],
-    },
-    {
       title: "Resources",
       links: [
         { id: 5, title: "GitHub", url: "https://github.com/zay168/ossify" },
-        { id: 6, title: "Releases", url: "https://github.com/zay168/ossify/releases" },
-        { id: 7, title: "License", url: "https://github.com/zay168/ossify/blob/main/LICENSE" },
+        { id: 6, title: "Changelog", url: "https://github.com/zay168/ossify/blob/main/CHANGELOG.md" },
+        { id: 7, title: "Releases", url: "https://github.com/zay168/ossify/releases" },
         { id: 8, title: "Security", url: "https://github.com/zay168/ossify/blob/main/SECURITY.md" },
       ],
     },
     {
       title: "Installers",
       links: [
-        { id: 9, title: "install.ps1", url: "https://zay168.github.io/ossify/install.ps1" },
-        { id: 10, title: "install.sh", url: "https://zay168.github.io/ossify/install.sh" },
-        { id: 11, title: "GitHub Pages", url: "https://zay168.github.io/ossify/" },
-        { id: 12, title: "Releases API", url: "https://github.com/zay168/ossify/releases/latest" },
+        { id: 9, title: "install.ps1", url: "https://ossify-react.netlify.app/install.ps1" },
+        { id: 10, title: "install.sh", url: "https://ossify-react.netlify.app/install.sh" },
+        { id: 11, title: "Netlify landing", url: "https://ossify-react.netlify.app/ossify/" },
+        { id: 12, title: "Latest release", url: "https://github.com/zay168/ossify/releases/latest" },
       ],
     },
   ],
@@ -424,23 +408,23 @@ export function FlickeringFooter() {
 
   return (
     <footer id="footer" className="w-full pb-0">
-      <div className="flex flex-col p-10 md:flex-row md:items-center md:justify-between">
-        <div className="mx-0 flex max-w-xs flex-col items-start justify-start gap-y-5">
+      <div className="mx-auto grid max-w-6xl gap-12 px-6 py-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-20">
+        <div className="flex max-w-[30rem] flex-col items-start gap-y-5">
           <a href="#top" className="flex items-center gap-2">
-            <Icons.logo className="size-8" />
+            <Icons.logo />
           </a>
-          <p className="font-medium tracking-tight text-muted-foreground">
+          <p className="max-w-[28rem] font-medium tracking-tight text-muted-foreground">
             {siteConfig.hero.description}
           </p>
-          <div className="flex items-center gap-2">
-            <Icons.soc2 className="size-12" />
-            <Icons.hipaa className="size-12" />
-            <Icons.gdpr className="size-12" />
+          <div className="flex max-w-[28rem] flex-wrap items-center gap-2">
+            <Icons.managed className="size-12" />
+            <Icons.release className="size-12" />
+            <Icons.trust className="size-12" />
+            <Icons.offline className="size-12" />
           </div>
         </div>
 
-        <div className="pt-5 md:w-1/2">
-          <div className="flex flex-col items-start justify-start gap-y-5 md:flex-row md:items-center md:justify-between lg:pl-10">
+        <div className="grid content-start gap-8 sm:grid-cols-2 lg:max-w-xl lg:justify-self-end">
             {siteConfig.footerLinks.map((column) => (
               <ul key={column.title} className="flex flex-col gap-y-2">
                 <li className="mb-2 text-sm font-semibold text-primary">{column.title}</li>
@@ -456,8 +440,7 @@ export function FlickeringFooter() {
                   </li>
                 ))}
               </ul>
-            ))}
-          </div>
+            ))}          
         </div>
       </div>
 

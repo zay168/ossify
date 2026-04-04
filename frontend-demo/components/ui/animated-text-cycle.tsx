@@ -15,9 +15,30 @@ export default function AnimatedTextCycle({
 }: AnimatedTextCycleProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [width, setWidth] = useState("auto");
+  const [isEnhanced, setIsEnhanced] = useState(false);
   const measureRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (
+        callback: () => void,
+        options?: { timeout?: number },
+      ) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+
+    if (idleWindow.requestIdleCallback) {
+      const id = idleWindow.requestIdleCallback(() => setIsEnhanced(true), { timeout: 1200 });
+      return () => idleWindow.cancelIdleCallback?.(id);
+    }
+
+    const id = window.setTimeout(() => setIsEnhanced(true), 900);
+    return () => window.clearTimeout(id);
+  }, []);
+
+  useEffect(() => {
+    if (!isEnhanced) return;
+
     if (measureRef.current) {
       const elements = measureRef.current.children;
       if (elements.length > currentIndex) {
@@ -25,15 +46,17 @@ export default function AnimatedTextCycle({
         setWidth(`${newWidth}px`);
       }
     }
-  }, [currentIndex]);
+  }, [currentIndex, isEnhanced]);
 
   useEffect(() => {
+    if (!isEnhanced) return;
+
     const timer = setInterval(() => {
       setCurrentIndex((prevIndex) => (prevIndex + 1) % words.length);
     }, interval);
 
     return () => clearInterval(timer);
-  }, [interval, words.length]);
+  }, [interval, isEnhanced, words.length]);
 
   const containerVariants = {
     hidden: {
@@ -60,6 +83,10 @@ export default function AnimatedTextCycle({
       },
     },
   };
+
+  if (!isEnhanced) {
+    return <span className={`inline-block font-bold ${className}`}>{words[0]}</span>;
+  }
 
   return (
     <>

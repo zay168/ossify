@@ -4,31 +4,15 @@ import React from "react";
 import {
   ArrowRight,
   ChevronRight,
-  FileCheck2,
-  GitBranchPlus,
   Menu,
-  ShieldCheck,
-  Sparkles,
-  Wand2,
   X,
 } from "lucide-react";
 
 import { AnimatedGroup } from "@/components/ui/animated-group";
 import { AnimatedTextCycleDemo } from "@/components/ui/animated-text-cycle-demo";
 import { Button } from "@/components/ui/button";
-import { DeferredSection } from "@/components/ui/deferred-section";
-import { TextEffect } from "@/components/ui/text-effect";
+import { FlickeringFooter } from "@/components/ui/flickering-footer";
 import { cn } from "@/lib/utils";
-
-const LazyThreeDTestimonialsDemo = React.lazy(async () => {
-  const module = await import("@/components/ui/3d-testimonails-demo");
-  return { default: module.ThreeDTestimonialsDemo };
-});
-
-const LazyFlickeringFooter = React.lazy(async () => {
-  const module = await import("@/components/ui/flickering-footer");
-  return { default: module.FlickeringFooter };
-});
 
 const transitionVariants = {
   item: {
@@ -53,30 +37,77 @@ const transitionVariants = {
 const menuItems = [
   { name: "Install", href: "#install" },
   { name: "Signals", href: "#signals" },
-  { name: "Flow", href: "#flow" },
   { name: "GitHub", href: "https://github.com/zay168/ossify" },
 ];
 
 const trustSignals = [
-  { label: "README, metadata, CI, security, release", icon: FileCheck2 },
-  { label: "Interactive audit and fix plan", icon: Wand2 },
-  { label: "Safe GitHub-aware scaffolding", icon: GitBranchPlus },
-  { label: "Signals that make a repo safer to adopt", icon: ShieldCheck },
+  {
+    eyebrow: "Docs",
+    title: "README and metadata stop feeling incidental",
+    body: "Identity, ownership, and security cues read like deliberate maintainer choices.",
+  },
+  {
+    eyebrow: "Workflow",
+    title: "CI and permissions look maintained",
+    body: "GitHub Actions, token scope, and release hygiene are visible before deeper review.",
+  },
+  {
+    eyebrow: "Plan",
+    title: "Safe fixes stay previewable",
+    body: "Scaffold missing files conservatively and keep manual edits explicit.",
+  },
+  {
+    eyebrow: "Coverage",
+    title: "One CLI spans the trust layer",
+    body: "Audit the repo once, then drill into workflow, deps, docs, and release with the same vocabulary.",
+  },
 ];
 
-const proofPoints = [
-  "Readable installs, tighter workflow hygiene, and fewer repo-level unknowns.",
-  "A stronger first impression for contributors, evaluators, and future maintainers.",
-  "Signals that feel curated instead of accidentally healthy.",
+const commandRail = [
+  { title: "Audit", command: "ossify audit ." },
+  { title: "Workflow", command: "ossify workflow ." },
+  { title: "Deps", command: "ossify deps ." },
+  { title: "Release", command: "ossify release ." },
 ];
 
-const heroBackgroundUrl = `${import.meta.env.BASE_URL}hero-background.png`;
 
-const belowFoldPlaceholder =
-  "relative h-[32rem] w-full overflow-hidden rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(15,21,37,0.88),rgba(8,13,24,0.94))]";
+const terminalFindings = [
+  {
+    tone: "text-emerald-200",
+    badge: "docs",
+    text: "README surface is present and readable",
+  },
+  {
+    tone: "text-sky-200",
+    badge: "workflow",
+    text: "actionlint and permissions checks passed",
+  },
+  {
+    tone: "text-amber-200",
+    badge: "deps",
+    text: "paste 1.0.15 flagged as unmaintained (RUSTSEC-2024-0436)",
+  },
+  {
+    tone: "text-slate-300",
+    badge: "release",
+    text: "GitHub release notes still need editorial framing",
+  },
+];
 
-const footerPlaceholder =
-  "relative mt-12 h-64 w-full overflow-hidden border-t border-white/10 bg-[linear-gradient(180deg,rgba(8,13,24,0.1),rgba(8,13,24,0.72))]";
+const terminalScores = [
+  { label: "docs", value: "92" },
+  { label: "workflow", value: "100" },
+  { label: "deps", value: "72" },
+  { label: "release", value: "94" },
+];
+
+const scaffoldPreview = [
+  { status: "created", label: "CHANGELOG.md" },
+  { status: "created", label: ".github/workflows/ci.yml" },
+  { status: "manual", label: "Release notes framing" },
+];
+
+const installHost = "https://ossify-react.netlify.app";
 
 export function HeroSection() {
   return (
@@ -93,41 +124,13 @@ export function HeroSection() {
 
         <section>
           <div className="relative pt-24 md:pt-36">
-            <AnimatedGroup
-              variants={{
-                container: {
-                  visible: {
-                    transition: {
-                      delayChildren: 1,
-                    },
-                  },
-                },
-                item: {
-                  hidden: {
-                    opacity: 0,
-                    y: 20,
-                  },
-                  visible: {
-                    opacity: 1,
-                    y: 0,
-                    transition: {
-                      type: "spring" as const,
-                      bounce: 0.3,
-                      duration: 2,
-                    },
-                  },
-                },
-              }}
-              className="absolute inset-0 -z-20"
-            >
-              <img
-                src={heroBackgroundUrl}
-                alt="Workspace background"
-                className="absolute inset-x-0 top-56 hidden opacity-25 saturate-0 lg:top-24 lg:block"
-                width="1800"
-                height="1200"
-              />
-            </AnimatedGroup>
+            <div aria-hidden className="absolute inset-0 -z-20 overflow-hidden">
+              <div className="absolute inset-x-[8%] top-20 h-[32rem] rounded-[3rem] bg-[radial-gradient(circle_at_top,rgba(125,211,252,0.14),transparent_28%),linear-gradient(180deg,rgba(14,21,37,0.55),rgba(8,13,24,0.05))]" />
+              <div className="absolute left-[18%] top-[19rem] size-2 rounded-full bg-primary shadow-[0_0_18px_rgba(125,211,252,0.6)]" />
+              <div className="absolute left-[41%] top-[23rem] size-2 rounded-full bg-[#f4bf72] shadow-[0_0_18px_rgba(244,191,114,0.5)]" />
+              <div className="absolute right-[23%] top-[16.5rem] size-2 rounded-full bg-primary shadow-[0_0_18px_rgba(125,211,252,0.6)]" />
+              <div className="absolute left-[52%] top-[10rem] h-24 w-24 rounded-full bg-[radial-gradient(circle,rgba(244,191,114,0.18),transparent_70%)] blur-2xl" />
+            </div>
 
             <div
               aria-hidden
@@ -136,10 +139,10 @@ export function HeroSection() {
 
             <div className="mx-auto max-w-7xl px-6">
               <div className="text-center">
-                <AnimatedGroup variants={transitionVariants}>
+                <div>
                   <a
                     href="#install"
-                    className="group mx-auto flex w-fit items-center gap-4 rounded-full border border-white/10 bg-muted p-1 pl-4 shadow-md shadow-black/10 transition-all duration-300 hover:bg-background"
+                    className="group mx-auto flex w-fit items-center gap-4 rounded-full bg-muted/70 p-1 pl-4 shadow-[0_10px_30px_rgba(0,0,0,0.12)] transition-all duration-300 hover:bg-background/80"
                   >
                     <span className="text-sm text-foreground">
                       Native install for PowerShell and shell
@@ -157,47 +160,27 @@ export function HeroSection() {
                     </div>
                   </a>
 
-                  <TextEffect
-                    as="h1"
-                    preset="blur"
-                    per="word"
-                    className="mx-auto mt-8 max-w-5xl text-balance font-serif text-6xl tracking-[-0.06em] md:text-7xl lg:mt-16 xl:text-[5.25rem]"
-                  >
+                  <h1 className="mx-auto mt-8 max-w-5xl text-balance font-serif text-6xl tracking-[-0.06em] md:text-7xl lg:mt-16 xl:text-[5.25rem]">
                     Turn rough repos into projects people trust on sight.
-                  </TextEffect>
+                  </h1>
 
-                  <TextEffect
-                    as="p"
-                    preset="fade"
-                    per="word"
-                    delay={0.4}
-                    className="mx-auto mt-8 max-w-2xl text-balance text-lg text-muted-foreground"
-                  >
-                    ossify audits the trust layer around your codebase: docs, metadata,
-                    contributor signals, CI, release surface, and the exact gaps that
-                    keep a repo from feeling ready.
-                  </TextEffect>
+                  <p className="mx-auto mt-7 max-w-3xl text-[11px] uppercase tracking-[0.32em] text-muted-foreground">
+                    docs / workflow / deps / release / safe plan
+                  </p>
 
-                  <div className="mt-7 flex justify-center overflow-hidden px-6">
+                  <p className="mx-auto mt-8 max-w-2xl text-balance text-lg leading-8 text-muted-foreground">
+                    Audit the trust layer around your repo, surface the gaps that actually
+                    matter, and preview safe fixes before you touch the tree.
+                  </p>
+
+                  <div className="mt-9 flex justify-center overflow-hidden px-6">
                     <AnimatedTextCycleDemo />
                   </div>
-                </AnimatedGroup>
 
-                <AnimatedGroup
-                  variants={{
-                    container: {
-                      visible: {
-                        transition: {
-                          staggerChildren: 0.05,
-                          delayChildren: 0.75,
-                        },
-                      },
-                    },
-                    ...transitionVariants,
-                  }}
-                  className="mt-12 flex flex-col items-center justify-center gap-2 md:flex-row"
-                >
-                  <div className="rounded-[14px] border border-white/10 bg-foreground/10 p-0.5">
+                </div>
+
+                <div className="mt-12 flex flex-col items-center justify-center gap-2 md:flex-row">
+                  <div className="rounded-[14px] bg-foreground/10 p-0.5 shadow-[0_10px_25px_rgba(0,0,0,0.12)]">
                     <Button asChild size="lg" className="rounded-xl px-5 text-base">
                       <a href="#install">
                         <span className="text-nowrap">Install ossify</span>
@@ -214,171 +197,157 @@ export function HeroSection() {
                       <span className="text-nowrap">View the repo</span>
                     </a>
                   </Button>
-                </AnimatedGroup>
-              </div>
-            </div>
-
-            <AnimatedGroup
-              variants={{
-                container: {
-                  visible: {
-                    transition: {
-                      staggerChildren: 0.05,
-                      delayChildren: 0.75,
-                    },
-                  },
-                },
-                ...transitionVariants,
-              }}
-            >
-              <div className="relative mt-8 overflow-hidden px-2 sm:mt-12 md:mt-20">
-                <div
-                  aria-hidden
-                  className="absolute inset-0 z-10 bg-gradient-to-b from-transparent from-35% to-background"
-                />
-                <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] border border-white/10 bg-background/90 p-4 shadow-[0_30px_80px_rgba(0,0,0,0.35)] ring-1 ring-white/10">
-                  <div className="relative overflow-hidden rounded-[1.35rem] border border-white/10 bg-[linear-gradient(180deg,rgba(10,18,32,0.98),rgba(8,14,24,0.98))] p-6">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(125,211,252,0.12),transparent_30%),radial-gradient(circle_at_bottom_right,rgba(251,191,36,0.12),transparent_22%)]" />
-                    <div className="relative grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
-                      <div className="space-y-4">
-                        <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.28em] text-primary">
-                          <Sparkles className="size-3.5" />
-                          Maintainer-grade output
-                        </div>
-                        <div className="rounded-2xl border border-white/10 bg-black/25 p-5">
-                          <div className="mb-4 flex items-center justify-between text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                            <span>OSSIFY PLAN</span>
-                            <span>safe preview</span>
-                          </div>
-                          <div className="flex items-end gap-4">
-                            <div>
-                              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                                Current
-                              </p>
-                              <strong className="text-5xl tracking-[-0.06em]">63</strong>
-                            </div>
-                            <ArrowRight className="mb-2 size-5 text-[#f4bf72]" />
-                            <div>
-                              <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                                Estimated
-                              </p>
-                              <strong className="text-5xl tracking-[-0.06em] text-primary">
-                                91
-                              </strong>
-                            </div>
-                          </div>
-                          <div className="mt-5 h-2 rounded-full bg-white/8">
-                            <div className="h-full w-[78%] rounded-full bg-[linear-gradient(90deg,#7dd3fc,#f4bf72)]" />
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid gap-3">
-                        {[
-                          ["CREATED", "README.md"],
-                          ["CREATED", ".github/workflows/ci.yml"],
-                          ["SKIPPED", ".github/FUNDING.yml"],
-                          ["MANUAL", "README examples still need review"],
-                        ].map(([status, label]) => (
-                          <div
-                            key={label}
-                            className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3"
-                          >
-                            <span
-                              className={cn(
-                                "inline-flex min-w-24 items-center justify-center rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em]",
-                                status === "CREATED" && "bg-emerald-400/14 text-emerald-200",
-                                status === "SKIPPED" && "bg-amber-300/12 text-amber-200",
-                                status === "MANUAL" && "bg-sky-300/12 text-sky-200",
-                              )}
-                            >
-                              {status}
-                            </span>
-                            <span className="text-right text-sm text-muted-foreground">
-                              {label}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
                 </div>
-              </div>
-            </AnimatedGroup>
-          </div>
-        </section>
 
-        <section id="signals" className="bg-background pb-16 pt-16 md:pb-32">
-          <div className="group relative m-auto max-w-5xl px-6">
-            <div className="absolute inset-0 z-10 flex scale-95 items-center justify-center opacity-0 transition-all duration-500 group-hover:scale-100 group-hover:opacity-100">
-              <a href="#flow" className="block text-sm transition-opacity duration-150 hover:opacity-75">
-                <span>See the maintainer workflow</span>
-                <ChevronRight className="ml-1 inline-block size-3" />
-              </a>
-            </div>
-            <div className="mx-auto mt-12 grid max-w-4xl gap-4 transition-all duration-500 group-hover:opacity-45 sm:grid-cols-2">
-              {trustSignals.map((signal) => {
-                const Icon = signal.icon;
-                return (
+                <div className="relative mt-10 overflow-hidden px-2 sm:mt-12 md:mt-16">
                   <div
-                    key={signal.label}
-                    className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4"
-                  >
-                    <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5">
-                      <Icon className="size-4 text-primary" />
+                    aria-hidden
+                    className="absolute inset-0 z-10 bg-gradient-to-b from-transparent from-30% to-background"
+                  />
+                  <div className="relative mx-auto max-w-6xl overflow-hidden rounded-[1.75rem] bg-background/90 p-4 shadow-[0_30px_80px_rgba(0,0,0,0.35)]">
+                    <div className="relative overflow-hidden rounded-[1.35rem] bg-[linear-gradient(180deg,rgba(10,18,32,0.98),rgba(8,14,24,0.98))] p-4 md:p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(125,211,252,0.12),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(251,191,36,0.1),transparent_22%)]" />
+                      <div className="relative">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/8 pb-4">
+                          <div className="flex items-center gap-2">
+                            <span className="size-2.5 rounded-full bg-[#f87171]" />
+                            <span className="size-2.5 rounded-full bg-[#fbbf24]" />
+                            <span className="size-2.5 rounded-full bg-[#34d399]" />
+                            <span className="ml-3 font-mono text-xs uppercase tracking-[0.22em] text-muted-foreground">
+                              maintainer pass
+                            </span>
+                          </div>
+                          <div className="flex flex-wrap items-center justify-end gap-2">
+                            {commandRail.map((item) => (
+                              <span
+                                key={item.title}
+                                className="rounded-full bg-white/[0.04] px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground"
+                              >
+                                {item.title}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="mt-5 grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
+                          <div className="rounded-[1.15rem] bg-black/25 px-4 py-4 text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_10px_30px_rgba(0,0,0,0.12)]">
+                            <div className="font-mono text-[12px] leading-6 text-slate-300 md:text-[13px]">
+                              <div className="text-primary">
+                                PS C:\repo&gt; <span className="text-foreground">ossify audit .</span>
+                              </div>
+                              <div className="mt-2 text-slate-200">
+                                score 84/100  tier promising  docs 92  workflow 100  deps 72  release 94
+                              </div>
+                              <div className="mt-3 text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                                dominant signals
+                              </div>
+                              <div className="mt-2 space-y-2">
+                                {terminalFindings.map((finding) => (
+                                  <div key={finding.text} className="flex gap-3">
+                                    <span className={cn("w-14 shrink-0 uppercase", finding.tone)}>
+                                      {finding.badge}
+                                    </span>
+                                    <span className="text-slate-300">{finding.text}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="mt-4 text-primary">
+                                PS C:\repo&gt; <span className="text-foreground">ossify plan .</span>
+                              </div>
+                              <div className="mt-2 text-slate-300">
+                                current 63 {"->"} estimated 91  |  3 scaffold actions  |  1 manual note
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="grid gap-4">
+                            <div className="rounded-[1.15rem] bg-white/[0.03] p-4 text-left shadow-[0_10px_30px_rgba(0,0,0,0.1)]">
+                              <p className="text-[11px] uppercase tracking-[0.22em] text-primary">
+                                domain scores
+                              </p>
+                              <div className="mt-4 grid gap-2">
+                                {terminalScores.map((score) => (
+                                  <div
+                                    key={score.label}
+                                    className="flex items-center justify-between rounded-xl bg-black/20 px-3 py-2"
+                                  >
+                                    <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
+                                      {score.label}
+                                    </span>
+                                    <span className="font-mono text-sm text-foreground">
+                                      {score.value}/100
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+
+                            <div className="rounded-[1.15rem] bg-white/[0.03] p-4 text-left shadow-[0_10px_30px_rgba(0,0,0,0.1)]">
+                              <p className="text-[11px] uppercase tracking-[0.22em] text-primary">
+                                safe scaffolds
+                              </p>
+                              <div className="mt-4 space-y-2">
+                                {scaffoldPreview.map((item) => (
+                                  <div
+                                    key={item.label}
+                                    className="flex items-center justify-between gap-4 rounded-xl bg-black/20 px-3 py-2"
+                                  >
+                                    <span
+                                      className={cn(
+                                        "rounded-full px-2 py-1 font-mono text-[10px] uppercase tracking-[0.18em]",
+                                        item.status === "created" && "bg-emerald-400/14 text-emerald-200",
+                                        item.status === "manual" && "bg-sky-300/12 text-sky-200",
+                                      )}
+                                    >
+                                      {item.status}
+                                    </span>
+                                    <span className="text-right text-sm text-muted-foreground">
+                                      {item.label}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{signal.label}</p>
                   </div>
-                );
-              })}
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="mx-auto max-w-6xl px-6 pb-24">
-          <AnimatedGroup variants={transitionVariants} className="text-center">
-            <div className="mx-auto max-w-3xl">
-              <p className="text-xs uppercase tracking-[0.28em] text-primary">
-                Social proof, without flattening the product
-              </p>
-              <h2 className="mt-4 text-balance font-serif text-4xl tracking-[-0.05em] md:text-[3.15rem]">
-                The kind of repo feedback ossify is built to improve.
-              </h2>
-              <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
-                The section keeps the 3D testimonial idea, but with calmer perspective,
-                fuller cards, and a layout that breathes like the rest of the landing.
-              </p>
-            </div>
-
-            <div className="mx-auto mt-8 grid max-w-5xl gap-3 md:grid-cols-3">
-              {proofPoints.map((point) => (
-                <div
-                  key={point}
-                  className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-4 text-left"
-                >
-                  <div className="mt-0.5 size-2 rounded-full bg-primary shadow-[0_0_16px_rgba(125,211,252,0.65)]" />
-                  <p className="text-sm leading-7 text-muted-foreground">{point}</p>
+        <section
+          id="signals"
+          className="bg-background pb-16 pt-16 md:pb-32 [content-visibility:auto] [contain-intrinsic-size:720px]"
+        >
+          <div className="mx-auto max-w-6xl px-6">
+            <div className="grid gap-10 lg:grid-cols-[0.88fr_1.12fr] lg:items-start">
+              <AnimatedGroup variants={transitionVariants}>
+                <div className="rounded-[1.75rem] border border-white/10 bg-[linear-gradient(180deg,rgba(14,21,37,0.82),rgba(8,13,24,0.92))] p-8">
+                  <p className="text-xs uppercase tracking-[0.28em] text-primary">
+                    Trust surfaces
+                  </p>
+                  <h2 className="mt-4 max-w-md font-serif text-4xl tracking-[-0.05em]">
+                    What ossify reads before a repo feels safe to adopt.
+                  </h2>
+                  <p className="mt-5 max-w-lg text-lg leading-8 text-muted-foreground">
+                    Healthy repositories signal intent in more than one place. Docs,
+                    workflow discipline, dependency policy, and release readiness need to
+                    reinforce each other instead of sending mixed messages.
+                  </p>
+                  <a
+                    href="#flow"
+                    className="mt-6 inline-flex items-center gap-2 text-sm text-foreground transition-opacity duration-150 hover:opacity-75"
+                  >
+                    <span>See the install path</span>
+                    <ChevronRight className="size-4" />
+                  </a>
                 </div>
-              ))}
-            </div>
-          </AnimatedGroup>
+              </AnimatedGroup>
 
-          <DeferredSection
-            className="mt-10 [content-visibility:auto] [contain-intrinsic-size:540px]"
-            minHeight={540}
-            placeholder={
-              <div className={belowFoldPlaceholder}>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(125,211,252,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(244,191,114,0.1),transparent_22%)]" />
-              </div>
-            }
-          >
-            <React.Suspense
-              fallback={
-                <div className={belowFoldPlaceholder}>
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(125,211,252,0.12),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(244,191,114,0.1),transparent_22%)]" />
-                </div>
-              }
-            >
               <AnimatedGroup
                 variants={{
                   container: {
@@ -391,57 +360,70 @@ export function HeroSection() {
                   },
                   ...transitionVariants,
                 }}
+                className="grid gap-4 sm:grid-cols-2"
               >
-                <LazyThreeDTestimonialsDemo />
+                {trustSignals.map((signal) => (
+                  <div key={signal.title} className="border-t border-white/10 pt-4">
+                    <p className="text-[11px] uppercase tracking-[0.24em] text-primary">
+                      {signal.eyebrow}
+                    </p>
+                    <p className="mt-2 text-lg font-medium tracking-[-0.02em] text-foreground">
+                      {signal.title}
+                    </p>
+                    <p className="mt-2 text-sm leading-7 text-muted-foreground">
+                      {signal.body}
+                    </p>
+                  </div>
+                ))}
               </AnimatedGroup>
-            </React.Suspense>
-          </DeferredSection>
-        </section>
-
-        <section id="install" className="mx-auto max-w-6xl px-6 pb-24">
-          <div id="flow" className="grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
-            <div className="rounded-[1.75rem] border border-white/10 bg-muted/30 p-8">
-              <p className="text-xs uppercase tracking-[0.28em] text-primary">
-                One-line install
-              </p>
-              <h2 className="mt-4 max-w-sm font-serif text-4xl tracking-[-0.05em]">
-                Native bootstrap scripts for the latest release.
-              </h2>
-              <p className="mt-4 max-w-md text-muted-foreground">
-                PowerShell on Windows, shell on macOS and Linux, and a predictable
-                binary path. The landing is now wired around the actual install flow.
-              </p>
-            </div>
-            <div className="grid gap-4">
-              <div className="rounded-[1.5rem] border border-white/10 bg-background/80 p-5">
-                <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
-                  Windows PowerShell
-                </p>
-                <code className="mt-3 block overflow-x-auto rounded-2xl border border-white/10 bg-black/30 px-4 py-4 text-sm text-primary">
-                  irm https://zay168.github.io/ossify/install.ps1 | iex
-                </code>
-              </div>
-              <div className="rounded-[1.5rem] border border-white/10 bg-background/80 p-5">
-                <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
-                  macOS / Linux
-                </p>
-                <code className="mt-3 block overflow-x-auto rounded-2xl border border-white/10 bg-black/30 px-4 py-4 text-sm text-primary">
-                  curl -fsSL https://zay168.github.io/ossify/install.sh | sh
-                </code>
-              </div>
             </div>
           </div>
         </section>
 
-        <DeferredSection
-          className="[content-visibility:auto] [contain-intrinsic-size:420px]"
-          minHeight={420}
-          placeholder={<div className={footerPlaceholder} />}
+        <section
+          id="install"
+          className="mx-auto max-w-6xl px-6 pb-24 [content-visibility:auto] [contain-intrinsic-size:760px]"
         >
-          <React.Suspense fallback={<div className={footerPlaceholder} />}>
-            <LazyFlickeringFooter />
-          </React.Suspense>
-        </DeferredSection>
+          <div className="mx-auto max-w-4xl border-t border-white/8 pt-14 text-center">
+            <div className="mx-auto flex flex-col items-center">
+              <p className="text-xs uppercase tracking-[0.28em] text-primary">Install</p>
+              <h2 className="mx-auto mt-4 max-w-[42rem] text-balance font-serif text-4xl tracking-[-0.05em]">
+                One command. One public path.
+              </h2>
+              <p className="mx-auto mt-4 max-w-[42rem] text-balance leading-8 text-muted-foreground">
+                The landing, installer URLs, and shipped binary now point to the same
+                delivery surface.
+              </p>
+
+              <div id="flow" className="mx-auto mt-10 w-full max-w-[42rem] space-y-6 text-left">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
+                    Windows PowerShell
+                  </p>
+                  <code className="mt-3 block overflow-x-auto rounded-2xl bg-black/35 px-4 py-4 text-sm text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                    {`irm ${installHost}/install.ps1 | iex`}
+                  </code>
+                </div>
+
+                <div>
+                  <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
+                    macOS / Linux
+                  </p>
+                  <code className="mt-3 block overflow-x-auto rounded-2xl bg-black/35 px-4 py-4 text-sm text-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                    {`curl -fsSL ${installHost}/install.sh | sh`}
+                  </code>
+                </div>
+              </div>
+
+              <ul className="mx-auto mt-8 grid w-full max-w-[42rem] gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+                <li className="text-center">native CLI on the host</li>
+                <li className="text-center">managed workflow checks immediately</li>
+                <li className="text-center">deps and release engines on first use</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+        <FlickeringFooter />
       </main>
     </>
   );
@@ -456,7 +438,7 @@ const HeroHeader = () => {
       setIsScrolled(window.scrollY > 40);
     };
 
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
@@ -466,7 +448,7 @@ const HeroHeader = () => {
         <div
           className={cn(
             "mx-auto mt-2 max-w-6xl px-4 transition-all duration-300 lg:px-8",
-            isScrolled && "max-w-4xl rounded-[1.3rem] border border-white/10 bg-background/65 backdrop-blur-xl",
+            isScrolled && "max-w-4xl rounded-[1.3rem] bg-background/65 shadow-[0_14px_40px_rgba(0,0,0,0.12)] backdrop-blur-xl",
           )}
         >
           <div className="relative flex flex-wrap items-center justify-between gap-6 py-3 lg:gap-0 lg:py-4">
@@ -500,7 +482,7 @@ const HeroHeader = () => {
               </ul>
             </div>
 
-            <div className="mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-[1.75rem] border border-white/10 bg-background p-6 shadow-2xl shadow-zinc-950/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-3 lg:space-y-0 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none group-data-[state=active]:block lg:group-data-[state=active]:flex">
+            <div className="mb-6 hidden w-full flex-wrap items-center justify-end space-y-8 rounded-[1.75rem] bg-background p-6 shadow-2xl shadow-zinc-950/20 md:flex-nowrap lg:m-0 lg:flex lg:w-fit lg:gap-3 lg:space-y-0 lg:bg-transparent lg:p-0 lg:shadow-none group-data-[state=active]:block lg:group-data-[state=active]:flex">
               <div className="lg:hidden">
                 <ul className="space-y-6 text-base">
                   {menuItems.map((item) => (
@@ -554,3 +536,5 @@ const Logo = ({ className }: { className?: string }) => {
     </div>
   );
 };
+
+
