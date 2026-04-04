@@ -6,6 +6,8 @@ The project intends to follow SemVer. Breaking changes and experimental areas sh
 
 ## Unreleased
 
+## 0.2.0 - 2026-04-04
+
 ### Added
 
 - `ossify doctor docs` for focused Markdown quality checks, including broken local links, missing anchors, and README hygiene.
