@@ -1,0 +1,9 @@
+name = "unsound"
+description = "Single unsound advisory."
+score_min = 35
+score_max = 45
+cap = 45
+dominant_cap_code = "deps.rust.advisory.unsound"
+
+[features]
+advisory_unsound = 1

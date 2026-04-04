@@ -1,0 +1,9 @@
+name = "medium"
+description = "Single medium-severity vulnerability."
+score_min = 48
+score_max = 55
+cap = 55
+dominant_cap_code = "deps.rust.advisory.medium"
+
+[features]
+advisory_medium = 1

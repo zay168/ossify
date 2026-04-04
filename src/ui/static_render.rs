@@ -192,6 +192,18 @@ pub fn render_ui_report(model: &UiReport, color: bool, width: usize) -> String {
         .iter()
         .map(|category| render_category_line(category, category_label_width))
         .collect::<Vec<_>>();
+    let domain_label_width = model
+        .domains
+        .iter()
+        .map(|domain| display_width(domain.label))
+        .max()
+        .unwrap_or(8)
+        .max(8);
+    let domain_lines = model
+        .domains
+        .iter()
+        .map(|domain| render_domain_line(domain, domain_label_width))
+        .collect::<Vec<_>>();
     let strengths = top_strengths(model);
     let gaps = top_gaps(model);
     let diagnostics = top_diagnostics(model);
@@ -200,6 +212,13 @@ pub fn render_ui_report(model: &UiReport, color: bool, width: usize) -> String {
 
     if !wide {
         let mut parts = vec![hero];
+        if !domain_lines.is_empty() {
+            parts.push(box_section_preformatted(
+                width,
+                "Domain Scores",
+                &domain_lines,
+            ));
+        }
         parts.push(box_section_preformatted(
             width,
             "Category Scores",
@@ -223,11 +242,19 @@ pub fn render_ui_report(model: &UiReport, color: bool, width: usize) -> String {
 
     let gap_title = section_title_for_gaps(model);
     let left_sections = {
-        let mut sections = vec![box_section_preformatted(
+        let mut sections = Vec::new();
+        if !domain_lines.is_empty() {
+            sections.push(box_section_preformatted(
+                width / 2 - 1,
+                "Domain Scores",
+                &domain_lines,
+            ));
+        }
+        sections.push(box_section_preformatted(
             width / 2 - 1,
             "Category Scores",
             &category_lines,
-        )];
+        ));
         if !strengths.is_empty() {
             sections.push(box_section(width / 2 - 1, "Top Strengths", &strengths));
         }
@@ -357,6 +384,24 @@ fn render_category_line(category: &super::model::UiCategoryScore, label_width: u
         category.earned,
         category.total
     )
+}
+
+fn render_domain_line(domain: &super::model::UiDomainScore, label_width: usize) -> String {
+    let label = pad_to_width(domain.label, label_width);
+    let score = domain
+        .score
+        .map(|value| format!("{value:>3}%"))
+        .unwrap_or_else(|| String::from(" n/a"));
+    let cap = domain
+        .cap
+        .map(|value| format!(" cap {value:>2}"))
+        .unwrap_or_default();
+    let summary = domain
+        .cap_reason
+        .as_deref()
+        .map(|reason| format!("{} ({reason})", domain.summary))
+        .unwrap_or_else(|| domain.summary.clone());
+    format!("{label} | {score}{cap} | {} | {}", domain.engine, summary)
 }
 
 fn top_gaps(model: &UiReport) -> Vec<String> {

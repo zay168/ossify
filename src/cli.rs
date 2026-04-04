@@ -28,6 +28,11 @@ pub enum Command {
     Doctor(DoctorArgs),
     Init(ScaffoldArgs),
     Fix(FixArgs),
+    Plan(PlanArgs),
+    Docs(DocsDoctorArgs),
+    Workflow(WorkflowDoctorArgs),
+    Deps(DepsDoctorArgs),
+    Release(ReleaseDoctorArgs),
     Prompt(PromptArgs),
     Version,
 }
@@ -42,6 +47,8 @@ pub struct DoctorArgs {
 pub enum DoctorCommand {
     Docs(DocsDoctorArgs),
     Workflow(WorkflowDoctorArgs),
+    Deps(DepsDoctorArgs),
+    Release(ReleaseDoctorArgs),
 }
 
 #[derive(Debug, Clone, Args)]
@@ -54,6 +61,30 @@ pub struct DocsDoctorArgs {
 pub struct WorkflowDoctorArgs {
     #[arg(default_value = ".")]
     pub path: PathBuf,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct DepsDoctorArgs {
+    #[arg(default_value = ".")]
+    pub path: PathBuf,
+    #[arg(long, value_enum, default_value_t = EcosystemArg::Auto)]
+    pub ecosystem: EcosystemArg,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct ReleaseDoctorArgs {
+    #[arg(default_value = ".")]
+    pub path: PathBuf,
+    #[arg(long, value_enum, default_value_t = EcosystemArg::Auto)]
+    pub ecosystem: EcosystemArg,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
+pub enum EcosystemArg {
+    Auto,
+    Rust,
+    Node,
+    Python,
 }
 
 #[derive(Debug, Clone, Args)]
@@ -91,6 +122,14 @@ pub struct FixArgs {
     #[arg(long)]
     pub plan: bool,
     #[arg(long, conflicts_with = "json", requires = "plan")]
+    pub interactive: bool,
+}
+
+#[derive(Debug, Clone, Args)]
+pub struct PlanArgs {
+    #[command(flatten)]
+    pub scaffold: ScaffoldArgs,
+    #[arg(long, conflicts_with = "json")]
     pub interactive: bool,
 }
 
@@ -193,6 +232,7 @@ impl ParsedArgs {
             let interactive = match self.command.as_ref() {
                 Some(Command::Audit(command)) => command.interactive,
                 Some(Command::Fix(command)) => command.interactive,
+                Some(Command::Plan(command)) => command.interactive,
                 _ => false,
             };
             if interactive {
@@ -209,7 +249,8 @@ impl ParsedArgs {
 
 fn prepare_default_command(mut raw: Vec<String>) -> Vec<String> {
     const SUBCOMMANDS: &[&str] = &[
-        "audit", "doctor", "init", "fix", "prompt", "help", "version",
+        "audit", "doctor", "init", "fix", "plan", "docs", "workflow", "deps", "release", "prompt",
+        "help", "version",
     ];
 
     if raw.len() <= 1 {
@@ -304,7 +345,9 @@ mod tests {
         match args.command.expect("command") {
             Command::Doctor(command) => match command.command {
                 DoctorCommand::Docs(command) => assert_eq!(command.path, PathBuf::from(".")),
-                DoctorCommand::Workflow(_) => panic!("expected docs doctor"),
+                DoctorCommand::Workflow(_) | DoctorCommand::Deps(_) | DoctorCommand::Release(_) => {
+                    panic!("expected docs doctor")
+                }
             },
             _ => panic!("expected doctor command"),
         }
@@ -320,9 +363,85 @@ mod tests {
                 DoctorCommand::Workflow(command) => {
                     assert_eq!(command.path, PathBuf::from("."))
                 }
-                _ => panic!("expected workflow doctor"),
+                DoctorCommand::Docs(_) | DoctorCommand::Deps(_) | DoctorCommand::Release(_) => {
+                    panic!("expected workflow doctor")
+                }
             },
             _ => panic!("expected doctor command"),
+        }
+    }
+
+    #[test]
+    fn doctor_deps_parses() {
+        let args =
+            ParsedArgs::try_parse_from(["ossify", "doctor", "deps", ".", "--ecosystem", "node"])
+                .expect("parse doctor deps");
+
+        match args.command.expect("command") {
+            Command::Doctor(command) => match command.command {
+                DoctorCommand::Deps(command) => {
+                    assert_eq!(command.path, PathBuf::from("."));
+                    assert_eq!(command.ecosystem, EcosystemArg::Node);
+                }
+                DoctorCommand::Docs(_) | DoctorCommand::Workflow(_) | DoctorCommand::Release(_) => {
+                    panic!("expected deps doctor")
+                }
+            },
+            _ => panic!("expected doctor command"),
+        }
+    }
+
+    #[test]
+    fn doctor_release_parses() {
+        let args = ParsedArgs::try_parse_from([
+            "ossify",
+            "doctor",
+            "release",
+            ".",
+            "--ecosystem",
+            "python",
+        ])
+        .expect("parse doctor release");
+
+        match args.command.expect("command") {
+            Command::Doctor(command) => match command.command {
+                DoctorCommand::Release(command) => {
+                    assert_eq!(command.path, PathBuf::from("."));
+                    assert_eq!(command.ecosystem, EcosystemArg::Python);
+                }
+                DoctorCommand::Docs(_) | DoctorCommand::Workflow(_) | DoctorCommand::Deps(_) => {
+                    panic!("expected release doctor")
+                }
+            },
+            _ => panic!("expected doctor command"),
+        }
+    }
+
+    #[test]
+    fn top_level_plan_parses() {
+        let args = ParsedArgs::try_parse_from(["ossify", "plan", ".", "--interactive"])
+            .expect("parse top-level plan");
+
+        match args.command.expect("command") {
+            Command::Plan(command) => {
+                assert_eq!(command.scaffold.path, PathBuf::from("."));
+                assert!(command.interactive);
+            }
+            _ => panic!("expected plan command"),
+        }
+    }
+
+    #[test]
+    fn top_level_deps_parses() {
+        let args = ParsedArgs::try_parse_from(["ossify", "deps", ".", "--ecosystem", "rust"])
+            .expect("parse top-level deps");
+
+        match args.command.expect("command") {
+            Command::Deps(command) => {
+                assert_eq!(command.path, PathBuf::from("."));
+                assert_eq!(command.ecosystem, EcosystemArg::Rust);
+            }
+            _ => panic!("expected deps command"),
         }
     }
 }

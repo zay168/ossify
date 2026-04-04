@@ -1,0 +1,8 @@
+name = "policy-only"
+description = "Only missing policy visibility; no real advisory."
+score_min = 82
+score_max = 96
+
+[features]
+policy_missing = 1
+license_missing = 1

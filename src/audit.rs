@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use serde::Serialize;
 
 use crate::config::{OssifyConfig, RuleRequirement};
+use crate::doctor::{audit_domain_scores, DoctorDomainScore};
 use crate::intel::index::RepoIndex;
 use crate::intel::inference::{infer_rule, FindingSignal, RuleInput};
 use crate::intel::knowledge::KnowledgePack;
@@ -217,10 +218,12 @@ pub struct AuditReport {
     pub project: ProjectContext,
     pub readiness: ReadinessTier,
     pub score: u8,
+    pub base_score: u8,
     pub minimum_score: u8,
     pub strict_passed: bool,
     pub config_source: Option<PathBuf>,
     pub category_scores: Vec<CategoryScore>,
+    pub domain_scores: Vec<DoctorDomainScore>,
     pub checks: Vec<AuditCheck>,
 }
 
@@ -499,10 +502,12 @@ pub fn audit_repository(path: &Path, config: &OssifyConfig) -> io::Result<AuditR
         checks.push(build_check(spec, &snapshot, config, assessment));
     }
 
-    let score = percentage(
+    let base_score = percentage(
         checks.iter().map(|check| check.earned).sum(),
         checks.iter().map(|check| check.weight).sum(),
     );
+    let domain_scores = audit_domain_scores(&canonical)?;
+    let score = aggregate_audit_score(base_score, &domain_scores);
     let minimum_score = config.minimum_score();
     let strict_passed = score >= minimum_score && checks.iter().all(|check| !check.blocking);
 
@@ -511,10 +516,12 @@ pub fn audit_repository(path: &Path, config: &OssifyConfig) -> io::Result<AuditR
         project: snapshot.project,
         readiness: readiness_tier(score),
         score,
+        base_score,
         minimum_score,
         strict_passed,
         config_source: config.source().map(Path::to_path_buf),
         category_scores: category_scores(&checks),
+        domain_scores,
         checks,
     })
 }
@@ -590,10 +597,11 @@ pub fn estimate_report_after_upgrades(
         check.blocking = false;
     }
 
-    estimated.score = percentage(
+    estimated.base_score = percentage(
         estimated.checks.iter().map(|check| check.earned).sum(),
         estimated.checks.iter().map(|check| check.weight).sum(),
     );
+    estimated.score = aggregate_audit_score(estimated.base_score, &estimated.domain_scores);
     estimated.readiness = readiness_tier(estimated.score);
     estimated.category_scores = category_scores(&estimated.checks);
     estimated.strict_passed = estimated.score >= estimated.minimum_score
@@ -610,6 +618,31 @@ fn readiness_tier(score: u8) -> ReadinessTier {
     } else {
         ReadinessTier::Rough
     }
+}
+
+fn aggregate_audit_score(base_score: u8, domain_scores: &[DoctorDomainScore]) -> u8 {
+    let scored = domain_scores
+        .iter()
+        .filter_map(|entry| entry.score.map(|score| (score, entry.cap)))
+        .collect::<Vec<_>>();
+    if scored.is_empty() {
+        return base_score;
+    }
+
+    let average_gap = scored
+        .iter()
+        .map(|(score, _)| u16::from(base_score.saturating_sub(*score)))
+        .sum::<u16>()
+        / scored.len() as u16;
+    let mut blended = u16::from(base_score).saturating_sub(average_gap / 2);
+
+    for (_, cap) in scored {
+        if let Some(cap) = cap {
+            blended = blended.min(u16::from(cap));
+        }
+    }
+
+    blended as u8
 }
 
 fn ensure_directory(path: &Path) -> io::Result<()> {

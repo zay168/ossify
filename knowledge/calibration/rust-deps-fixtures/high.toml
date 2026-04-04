@@ -1,0 +1,9 @@
+name = "high"
+description = "Single high-severity vulnerability."
+score_min = 30
+score_max = 39
+cap = 39
+dominant_cap_code = "deps.rust.advisory.high"
+
+[features]
+advisory_high = 1

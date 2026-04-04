@@ -1,31 +1,20 @@
-mod audit;
-mod cli;
-mod clipboard;
-mod config;
-mod doctor;
-mod generator;
-mod intel;
-mod project;
-mod prompt;
-mod report;
-mod templates;
-mod ui;
-
 use std::path::Path;
 use std::process::ExitCode;
 
-use audit::audit_repository;
-use cli::{
-    AuditArgs, Command, DoctorArgs, DoctorCommand, FixArgs, OutputFormat, ParsedArgs, PromptArgs,
-    ScaffoldArgs,
+use ossify::audit::audit_repository;
+use ossify::cli::{
+    AuditArgs, Command, DepsDoctorArgs, DocsDoctorArgs, DoctorArgs, DoctorCommand, FixArgs,
+    OutputFormat, ParsedArgs, PlanArgs, PromptArgs, ReleaseDoctorArgs, ScaffoldArgs,
+    WorkflowDoctorArgs,
 };
-use config::OssifyConfig;
-use doctor::{doctor_docs, doctor_workflow};
-use generator::{fix_repository, generate_missing_files, plan_fix_repository, InitOptions};
-use prompt::build_bug_prompt_report;
-use report::{
-    print_audit_report, print_bug_prompt_report, print_docs_doctor_report, print_fix_report,
-    print_init_report, print_plan_report, print_workflow_doctor_report, OutputOptions,
+use ossify::config::OssifyConfig;
+use ossify::doctor::{doctor_deps, doctor_docs, doctor_release, doctor_workflow, DoctorEcosystem};
+use ossify::generator::{fix_repository, generate_missing_files, plan_fix_repository, InitOptions};
+use ossify::prompt::build_bug_prompt_report;
+use ossify::report::{
+    print_audit_report, print_bug_prompt_report, print_deps_doctor_report,
+    print_docs_doctor_report, print_fix_report, print_init_report, print_plan_report,
+    print_release_doctor_report, print_workflow_doctor_report, OutputOptions,
 };
 
 fn main() -> ExitCode {
@@ -47,6 +36,11 @@ fn main() -> ExitCode {
         Command::Doctor(command) => run_doctor(command, &output),
         Command::Init(command) => run_init(command, &output),
         Command::Fix(command) => run_fix(command, &output),
+        Command::Plan(command) => run_plan(command, &output),
+        Command::Docs(command) => run_docs(command, &output),
+        Command::Workflow(command) => run_workflow(command, &output),
+        Command::Deps(command) => run_deps(command, &output),
+        Command::Release(command) => run_release(command, &output),
         Command::Prompt(command) => run_prompt(command, &output),
         Command::Version => {
             println!("ossify {}", env!("CARGO_PKG_VERSION"));
@@ -57,44 +51,98 @@ fn main() -> ExitCode {
 
 fn run_doctor(command: DoctorArgs, output: &OutputOptions) -> ExitCode {
     match command.command {
-        DoctorCommand::Docs(command) => match doctor_docs(&command.path) {
-            Ok(report) => {
-                if let Err(error) = print_docs_doctor_report(&report, output) {
-                    eprintln!(
-                        "Failed to present docs doctor report for {}: {error}",
-                        command.path.display()
-                    );
-                    return ExitCode::from(1);
-                }
-                ExitCode::SUCCESS
-            }
-            Err(error) => {
+        DoctorCommand::Docs(command) => run_docs(command, output),
+        DoctorCommand::Workflow(command) => run_workflow(command, output),
+        DoctorCommand::Deps(command) => run_deps(command, output),
+        DoctorCommand::Release(command) => run_release(command, output),
+    }
+}
+
+fn run_docs(command: DocsDoctorArgs, output: &OutputOptions) -> ExitCode {
+    match doctor_docs(&command.path) {
+        Ok(report) => {
+            if let Err(error) = print_docs_doctor_report(&report, output) {
                 eprintln!(
-                    "Failed to doctor docs for {}: {error}",
+                    "Failed to present docs doctor report for {}: {error}",
                     command.path.display()
                 );
-                ExitCode::from(1)
+                return ExitCode::from(1);
             }
-        },
-        DoctorCommand::Workflow(command) => match doctor_workflow(&command.path) {
-            Ok(report) => {
-                if let Err(error) = print_workflow_doctor_report(&report, output) {
-                    eprintln!(
-                        "Failed to present workflow doctor report for {}: {error}",
-                        command.path.display()
-                    );
-                    return ExitCode::from(1);
-                }
-                ExitCode::SUCCESS
-            }
-            Err(error) => {
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            eprintln!(
+                "Failed to doctor docs for {}: {error}",
+                command.path.display()
+            );
+            ExitCode::from(1)
+        }
+    }
+}
+
+fn run_workflow(command: WorkflowDoctorArgs, output: &OutputOptions) -> ExitCode {
+    match doctor_workflow(&command.path) {
+        Ok(report) => {
+            if let Err(error) = print_workflow_doctor_report(&report, output) {
                 eprintln!(
-                    "Failed to doctor workflows for {}: {error}",
+                    "Failed to present workflow doctor report for {}: {error}",
                     command.path.display()
                 );
-                ExitCode::from(1)
+                return ExitCode::from(1);
             }
-        },
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            eprintln!(
+                "Failed to doctor workflows for {}: {error}",
+                command.path.display()
+            );
+            ExitCode::from(1)
+        }
+    }
+}
+
+fn run_deps(command: DepsDoctorArgs, output: &OutputOptions) -> ExitCode {
+    match doctor_deps(&command.path, DoctorEcosystem::from(command.ecosystem)) {
+        Ok(report) => {
+            if let Err(error) = print_deps_doctor_report(&report, output) {
+                eprintln!(
+                    "Failed to present deps doctor report for {}: {error}",
+                    command.path.display()
+                );
+                return ExitCode::from(1);
+            }
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            eprintln!(
+                "Failed to doctor dependencies for {}: {error}",
+                command.path.display()
+            );
+            ExitCode::from(1)
+        }
+    }
+}
+
+fn run_release(command: ReleaseDoctorArgs, output: &OutputOptions) -> ExitCode {
+    match doctor_release(&command.path, DoctorEcosystem::from(command.ecosystem)) {
+        Ok(report) => {
+            if let Err(error) = print_release_doctor_report(&report, output) {
+                eprintln!(
+                    "Failed to present release doctor report for {}: {error}",
+                    command.path.display()
+                );
+                return ExitCode::from(1);
+            }
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            eprintln!(
+                "Failed to doctor release surface for {}: {error}",
+                command.path.display()
+            );
+            ExitCode::from(1)
+        }
     }
 }
 
@@ -218,6 +266,44 @@ fn run_fix(command: FixArgs, output: &OutputOptions) -> ExitCode {
     }
 }
 
+fn run_plan(command: PlanArgs, output: &OutputOptions) -> ExitCode {
+    let output = OutputOptions {
+        interactive: command.interactive,
+        ..*output
+    };
+    let config = match load_config(&command.scaffold.path, command.scaffold.config.as_deref()) {
+        Ok(config) => config,
+        Err(error) => {
+            eprintln!(
+                "Failed to load config for {}: {error}",
+                command.scaffold.path.display()
+            );
+            return ExitCode::from(1);
+        }
+    };
+    let options = init_options(&command.scaffold, &config);
+
+    match plan_fix_repository(&command.scaffold.path, &options, &config) {
+        Ok(report) => {
+            if let Err(error) = print_plan_report(&report, &output) {
+                eprintln!(
+                    "Failed to present fix plan for {}: {error}",
+                    command.scaffold.path.display()
+                );
+                return ExitCode::from(1);
+            }
+            ExitCode::SUCCESS
+        }
+        Err(error) => {
+            eprintln!(
+                "Failed to plan fix for {}: {error}",
+                command.scaffold.path.display()
+            );
+            ExitCode::from(1)
+        }
+    }
+}
+
 fn run_prompt(command: PromptArgs, output: &OutputOptions) -> ExitCode {
     let config = match load_config(&command.path, command.config.as_deref()) {
         Ok(config) => config,
@@ -270,9 +356,9 @@ fn init_options(command: &ScaffoldArgs, config: &OssifyConfig) -> InitOptions {
         .or_else(|| {
             config
                 .default_license()
-                .and_then(|value| generator::LicenseKind::parse(value).ok())
+                .and_then(|value| ossify::generator::LicenseKind::parse(value).ok())
         })
-        .unwrap_or(generator::LicenseKind::Mit);
+        .unwrap_or(ossify::generator::LicenseKind::Mit);
     let owner = command
         .owner
         .clone()
@@ -294,6 +380,7 @@ fn init_options(command: &ScaffoldArgs, config: &OssifyConfig) -> InitOptions {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ossify::generator::LicenseKind;
     use std::fs;
 
     #[test]
@@ -311,14 +398,14 @@ mod tests {
         let args = ScaffoldArgs {
             path: root.clone(),
             overwrite: true,
-            license: Some(cli::LicenseArg::Mit),
+            license: Some(ossify::cli::LicenseArg::Mit),
             owner: Some(String::from("@cli-owner")),
             funding: Some(String::from("github:cli-owner")),
             config: None,
         };
 
         let options = init_options(&args, &config);
-        assert!(matches!(options.license, generator::LicenseKind::Mit));
+        assert!(matches!(options.license, LicenseKind::Mit));
         assert_eq!(options.owner, "@cli-owner");
         assert_eq!(options.funding.as_deref(), Some("github:cli-owner"));
 

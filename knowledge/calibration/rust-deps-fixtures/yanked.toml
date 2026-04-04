@@ -1,0 +1,9 @@
+name = "yanked"
+description = "Single yanked dependency advisory."
+score_min = 65
+score_max = 78
+cap = 76
+dominant_cap_code = "deps.rust.advisory.yanked"
+
+[features]
+advisory_yanked = 1

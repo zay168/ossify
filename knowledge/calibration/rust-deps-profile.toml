@@ -1,0 +1,42 @@
+version = 1
+objective = "balanced"
+
+[weights]
+advisory_critical = 46
+advisory_high = 32
+advisory_medium = 22
+advisory_low = 8
+advisory_unmaintained = 18
+advisory_yanked = 14
+advisory_unsound = 28
+advisory_informational = 6
+advisory_reported = 26
+lockfile_missing = 10
+policy_missing = 3
+license_missing = 4
+version_wildcard = 8
+source_direct = 8
+source_path = 2
+source_registry = 3
+license_reported = 5
+source_reported = 6
+bans_reported = 5
+engine_signal = 2
+
+[caps]
+advisory_critical = 25
+advisory_high = 39
+advisory_medium = 55
+advisory_low = 88
+advisory_unmaintained = 72
+advisory_yanked = 76
+advisory_unsound = 45
+advisory_informational = 92
+advisory_reported = 49
+
+[combination]
+repeated_advisory_penalty = 4
+low_signal_stack_penalty = 2
+unmaintained_cap_step = 4
+yanked_cap_step = 3
+policy_only_floor = 82

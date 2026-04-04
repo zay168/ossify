@@ -7,7 +7,10 @@ use serde_json::json;
 use crate::audit::AuditReport;
 use crate::cli::OutputFormat;
 use crate::clipboard::{copy_prompt_report, PROMPT_COPIED_MESSAGE, PROMPT_COPY_FAILED_PREFIX};
-use crate::doctor::{DocsDoctorReport, DoctorFinding, DoctorSeverity, WorkflowDoctorReport};
+use crate::doctor::{
+    DepsDoctorReport, DocsDoctorReport, DoctorEcosystem, DoctorFinding, DoctorSeverity,
+    EcosystemDoctorScore, ReleaseDoctorReport, WorkflowDoctorReport,
+};
 use crate::generator::{FixReport, InitReport, PlanReport};
 use crate::prompt::BugPromptReport;
 use crate::ui::{self, UiReport};
@@ -137,6 +140,38 @@ pub fn print_workflow_doctor_report(
     }
 }
 
+pub fn print_deps_doctor_report(
+    report: &DepsDoctorReport,
+    options: &OutputOptions,
+) -> io::Result<()> {
+    match options.format {
+        OutputFormat::Human => {
+            println!("{}", render_deps_doctor_human(report, options.color));
+            Ok(())
+        }
+        OutputFormat::Json => {
+            println!("{}", render_deps_doctor_json(report));
+            Ok(())
+        }
+    }
+}
+
+pub fn print_release_doctor_report(
+    report: &ReleaseDoctorReport,
+    options: &OutputOptions,
+) -> io::Result<()> {
+    match options.format {
+        OutputFormat::Human => {
+            println!("{}", render_release_doctor_human(report, options.color));
+            Ok(())
+        }
+        OutputFormat::Json => {
+            println!("{}", render_release_doctor_json(report));
+            Ok(())
+        }
+    }
+}
+
 fn render_audit_json(report: &AuditReport) -> String {
     serde_json::to_string(&json!({
         "command": "audit",
@@ -144,6 +179,7 @@ fn render_audit_json(report: &AuditReport) -> String {
         "project": &report.project,
         "readiness": report.readiness.as_str(),
         "score": report.score,
+        "base_score": report.base_score,
         "minimum_score": report.minimum_score,
         "strict_passed": report.strict_passed,
         "config_source": &report.config_source,
@@ -152,6 +188,7 @@ fn render_audit_json(report: &AuditReport) -> String {
         "missing_count": report.missing_count(),
         "diagnostic_count": report.finding_count(),
         "category_scores": &report.category_scores,
+        "domain_scores": &report.domain_scores,
         "checks": &report.checks,
         "diagnostics": report.diagnostics(),
     }))
@@ -376,6 +413,249 @@ fn render_workflow_doctor_human(report: &WorkflowDoctorReport, color: bool) -> S
     lines.join("\n")
 }
 
+fn render_deps_doctor_json(report: &DepsDoctorReport) -> String {
+    serde_json::to_string(&json!({
+        "command": "doctor",
+        "doctor": "deps",
+        "target": &report.target,
+        "requested_ecosystem": report.requested_ecosystem,
+        "score": report.domain.score,
+        "cap": report.domain.cap,
+        "cap_reason": report.domain.cap_reason,
+        "cap_code": report.domain.cap_code,
+        "engine": report.domain.engine,
+        "engine_source": report.domain.engine_source,
+        "ecosystem_count": report.ecosystems.len(),
+        "ecosystems": &report.ecosystems,
+        "error_count": report.error_count(),
+        "warning_count": report.warning_count(),
+        "info_count": report.info_count(),
+        "summary": report.summary(),
+        "findings": &report.findings,
+    }))
+    .unwrap_or_else(|_| String::from("{}"))
+}
+
+fn render_release_doctor_json(report: &ReleaseDoctorReport) -> String {
+    serde_json::to_string(&json!({
+        "command": "doctor",
+        "doctor": "release",
+        "target": &report.target,
+        "requested_ecosystem": report.requested_ecosystem,
+        "score": report.domain.score,
+        "cap": report.domain.cap,
+        "cap_reason": report.domain.cap_reason,
+        "cap_code": report.domain.cap_code,
+        "engine": report.domain.engine,
+        "engine_source": report.domain.engine_source,
+        "ecosystem_count": report.ecosystems.len(),
+        "ecosystems": &report.ecosystems,
+        "error_count": report.error_count(),
+        "warning_count": report.warning_count(),
+        "info_count": report.info_count(),
+        "summary": report.summary(),
+        "findings": &report.findings,
+    }))
+    .unwrap_or_else(|_| String::from("{}"))
+}
+
+fn render_deps_doctor_human(report: &DepsDoctorReport, color: bool) -> String {
+    render_multi_domain_doctor_human(
+        "OSSIFY DEPS DOCTOR",
+        "deps",
+        &report.target,
+        report.domain.score,
+        &report.domain.engine,
+        &report.domain.summary,
+        &report.ecosystems,
+        &report.findings,
+        color,
+    )
+}
+
+fn render_release_doctor_human(report: &ReleaseDoctorReport, color: bool) -> String {
+    render_multi_domain_doctor_human(
+        "OSSIFY RELEASE DOCTOR",
+        "release",
+        &report.target,
+        report.domain.score,
+        &report.domain.engine,
+        &report.domain.summary,
+        &report.ecosystems,
+        &report.findings,
+        color,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+fn render_multi_domain_doctor_human(
+    title: &str,
+    doctor_label: &str,
+    target: &std::path::Path,
+    score: Option<u8>,
+    engine: &str,
+    summary: &str,
+    ecosystems: &[EcosystemDoctorScore],
+    findings: &[DoctorFinding],
+    color: bool,
+) -> String {
+    let style = ReportStyle::new(color);
+    let width = current_terminal_width();
+    let ecosystem_summary = if ecosystems.is_empty() {
+        style.muted("none detected")
+    } else {
+        ecosystems
+            .iter()
+            .map(|entry| entry.ecosystem.label().to_owned())
+            .collect::<Vec<_>>()
+            .join(", ")
+    };
+
+    let mut lines = vec![
+        style.badge(title, 96, true),
+        format!(
+            "{}  {}  {}  {}  {}  {}",
+            style.label("score"),
+            style.score(score),
+            style.label("ecosystems"),
+            ecosystem_summary,
+            style.label("engine"),
+            style.muted(engine)
+        ),
+        format!("{} {}", style.label("target"), target.display()),
+        format!(
+            "{} {}  {}  {}",
+            style.label("summary"),
+            summary,
+            format_severity_counts(
+                &style,
+                findings
+                    .iter()
+                    .filter(|finding| finding.severity == DoctorSeverity::Warning)
+                    .count(),
+                findings
+                    .iter()
+                    .filter(|finding| finding.severity == DoctorSeverity::Info)
+                    .count(),
+                findings
+                    .iter()
+                    .filter(|finding| finding.severity == DoctorSeverity::Error)
+                    .count()
+            ),
+            style.muted(&format!("{} policy blend", doctor_label))
+        ),
+    ];
+    let dominant_cap_reason = ecosystems
+        .iter()
+        .filter_map(|entry| entry.cap_reason.as_ref().map(|reason| (entry.cap, reason)))
+        .min_by_key(|(cap, _)| cap.unwrap_or(u8::MAX))
+        .map(|(_, reason)| reason.clone());
+    if let Some(reason) = dominant_cap_reason {
+        lines.push(format!("{} {}", style.label("cap"), reason));
+    }
+
+    if !ecosystems.is_empty() {
+        lines.push(String::new());
+        lines.push(style.section("By Ecosystem"));
+        for ecosystem in ecosystems {
+            let cap = ecosystem
+                .cap
+                .map(|cap| format!(" cap {}", style.muted(&cap.to_string())))
+                .unwrap_or_default();
+            let detail = ecosystem
+                .engine_detail
+                .as_deref()
+                .map(|_| {
+                    format!(
+                        " {}",
+                        style.muted(&format!("[{}]", ecosystem.engine_status.label()))
+                    )
+                })
+                .unwrap_or_else(|| {
+                    if ecosystem.engine_status.label() == "managed" {
+                        String::new()
+                    } else {
+                        format!(
+                            " {}",
+                            style.muted(&format!("[{}]", ecosystem.engine_status.label()))
+                        )
+                    }
+                });
+            lines.push(format!(
+                "{}  {}  {}{}  {} finding(s){}",
+                style.file(ecosystem.ecosystem.label()),
+                style.score(Some(ecosystem.score)),
+                style.muted(&ecosystem.engine),
+                detail,
+                ecosystem.finding_count,
+                cap
+            ));
+            if let Some(reason) = &ecosystem.cap_reason {
+                lines.extend(wrap_prefixed(
+                    &format!("{} {}", style.muted("cap reason:"), reason),
+                    "  ",
+                    width,
+                ));
+            }
+        }
+    }
+
+    if findings.is_empty() {
+        lines.push(String::new());
+        lines.push(style.good(&format!("No {} findings.", doctor_label)));
+        return lines.join("\n");
+    }
+
+    lines.push(String::new());
+    lines.push(style.section("By File"));
+    for file_report in build_domain_file_reports(target, findings) {
+        let ecosystem = file_report
+            .ecosystems
+            .iter()
+            .map(|entry| entry.label())
+            .collect::<Vec<_>>()
+            .join(", ");
+        lines.push(format!(
+            "{}  {}  {}  {}",
+            style.file(&file_report.path),
+            format_severity_counts(
+                &style,
+                file_report.warning_count,
+                file_report.info_count,
+                file_report.error_count
+            ),
+            style.muted(&format!("{} issue(s)", file_report.detail_count)),
+            if ecosystem.is_empty() {
+                String::new()
+            } else {
+                style.muted(&format!("[{ecosystem}]"))
+            }
+        ));
+        for detail in file_report.details {
+            lines.extend(wrap_prefixed(
+                &format!("{} {}", style.dot(detail.severity), detail.message),
+                "  ",
+                width,
+            ));
+        }
+    }
+
+    let hints = domain_next_fixes(findings);
+    if !hints.is_empty() {
+        lines.push(String::new());
+        lines.push(style.section("Next Fixes"));
+        for hint in hints {
+            lines.extend(wrap_prefixed(
+                &format!("{} {}", style.muted("•"), hint),
+                "  ",
+                width,
+            ));
+        }
+    }
+
+    lines.join("\n")
+}
+
 #[derive(Debug)]
 struct WorkflowFileReport {
     path: String,
@@ -390,6 +670,17 @@ struct WorkflowFileReport {
 struct WorkflowDetail {
     severity: DoctorSeverity,
     message: String,
+}
+
+#[derive(Debug)]
+struct DomainFileReport {
+    path: String,
+    ecosystems: BTreeSet<DoctorEcosystem>,
+    warning_count: usize,
+    info_count: usize,
+    error_count: usize,
+    detail_count: usize,
+    details: Vec<WorkflowDetail>,
 }
 
 fn build_workflow_file_reports(report: &WorkflowDoctorReport) -> Vec<WorkflowFileReport> {
@@ -429,6 +720,57 @@ fn build_workflow_file_reports(report: &WorkflowDoctorReport) -> Vec<WorkflowFil
                 detail_count: findings.len(),
                 details,
             }
+        })
+        .collect()
+}
+
+fn build_domain_file_reports(
+    target: &std::path::Path,
+    findings: &[DoctorFinding],
+) -> Vec<DomainFileReport> {
+    let mut grouped = BTreeMap::<String, Vec<&DoctorFinding>>::new();
+    for finding in findings {
+        let location = finding
+            .file
+            .as_ref()
+            .map(|path| {
+                path.strip_prefix(target)
+                    .unwrap_or(path.as_path())
+                    .display()
+                    .to_string()
+            })
+            .unwrap_or_else(|| String::from("."));
+        grouped.entry(location).or_default().push(finding);
+    }
+
+    grouped
+        .into_iter()
+        .map(|(path, findings)| DomainFileReport {
+            path,
+            ecosystems: findings
+                .iter()
+                .filter_map(|finding| finding.ecosystem)
+                .collect(),
+            warning_count: findings
+                .iter()
+                .filter(|finding| finding.severity == DoctorSeverity::Warning)
+                .count(),
+            info_count: findings
+                .iter()
+                .filter(|finding| finding.severity == DoctorSeverity::Info)
+                .count(),
+            error_count: findings
+                .iter()
+                .filter(|finding| finding.severity == DoctorSeverity::Error)
+                .count(),
+            detail_count: findings.len(),
+            details: findings
+                .into_iter()
+                .map(|finding| WorkflowDetail {
+                    severity: finding.severity,
+                    message: finding.message.clone(),
+                })
+                .collect(),
         })
         .collect()
 }
@@ -521,6 +863,18 @@ fn workflow_next_fixes(report: &WorkflowDoctorReport) -> Vec<String> {
                 ));
             }
             _ => {}
+        }
+    }
+    hints.into_iter().collect()
+}
+
+fn domain_next_fixes(findings: &[DoctorFinding]) -> Vec<String> {
+    let mut hints = BTreeSet::new();
+    for finding in findings {
+        if let Some(fix_hint) = &finding.fix_hint {
+            hints.insert(fix_hint.clone());
+        } else if let Some(help) = &finding.help {
+            hints.insert(help.clone());
         }
     }
     hints.into_iter().collect()
@@ -795,6 +1149,8 @@ mod tests {
         assert!(rendered.contains(r#""retrieval_scope""#));
         assert!(rendered.contains(r#""history_refs""#));
         assert!(rendered.contains(r#""confidence_breakdown""#));
+        assert!(rendered.contains(r#""domain_scores""#));
+        assert!(rendered.contains(r#""base_score""#));
 
         let _ = fs::remove_dir_all(&root);
     }

@@ -1,0 +1,6 @@
+name = "clean"
+description = "No advisories or hygiene gaps."
+score_min = 96
+score_max = 100
+
+[features]

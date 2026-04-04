@@ -29,6 +29,16 @@ pub struct UiCategoryScore {
 }
 
 #[derive(Debug, Clone)]
+pub struct UiDomainScore {
+    pub label: &'static str,
+    pub score: Option<u8>,
+    pub cap: Option<u8>,
+    pub cap_reason: Option<String>,
+    pub engine: String,
+    pub summary: String,
+}
+
+#[derive(Debug, Clone)]
 pub struct UiCheck {
     pub id: &'static str,
     pub label: String,
@@ -86,6 +96,7 @@ pub struct UiReport {
     pub previous: Option<UiScoreSummary>,
     pub current: UiScoreSummary,
     pub categories: Vec<UiCategoryScore>,
+    pub domains: Vec<UiDomainScore>,
     pub checks: Vec<UiCheck>,
     pub diagnostics: Vec<UiDiagnostic>,
     pub files: Vec<UiFile>,
@@ -103,6 +114,7 @@ impl UiReport {
             previous: None,
             current: score_summary(report),
             categories: map_categories(report),
+            domains: map_domains(report),
             checks: map_checks(report),
             diagnostics: map_diagnostics(report),
             files: Vec::new(),
@@ -123,6 +135,7 @@ impl UiReport {
             previous: Some(score_summary(&report.before)),
             current: score_summary(&report.after),
             categories: map_categories(&report.after),
+            domains: map_domains(&report.after),
             checks: map_checks(&report.after),
             diagnostics: map_diagnostics(&report.after),
             files: map_files(&report.generated),
@@ -140,6 +153,7 @@ impl UiReport {
             previous: Some(score_summary(&report.before)),
             current: score_summary(&report.estimated_after),
             categories: map_categories(&report.estimated_after),
+            domains: map_domains(&report.estimated_after),
             checks: map_checks(&report.estimated_after),
             diagnostics: map_diagnostics(&report.estimated_after),
             files: map_files(&report.planned),
@@ -166,6 +180,21 @@ fn map_categories(report: &AuditReport) -> Vec<UiCategoryScore> {
             score: score.score,
             earned: score.earned,
             total: score.total,
+        })
+        .collect()
+}
+
+fn map_domains(report: &AuditReport) -> Vec<UiDomainScore> {
+    report
+        .domain_scores
+        .iter()
+        .map(|score| UiDomainScore {
+            label: score.domain.label(),
+            score: score.score,
+            cap: score.cap,
+            cap_reason: score.cap_reason.clone(),
+            engine: score.engine.clone(),
+            summary: score.summary.clone(),
         })
         .collect()
 }

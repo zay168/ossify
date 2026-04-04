@@ -1,0 +1,7 @@
+name = "direct-source"
+description = "Git-sourced dependency without a real advisory."
+score_min = 82
+score_max = 92
+
+[features]
+source_direct = 1

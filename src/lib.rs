@@ -1,0 +1,14 @@
+pub mod audit;
+pub mod cli;
+pub mod clipboard;
+pub mod config;
+pub mod doctor;
+pub mod engines;
+pub mod generator;
+pub mod intel;
+pub mod project;
+pub mod prompt;
+pub mod report;
+pub mod rust_deps;
+pub mod templates;
+pub mod ui;

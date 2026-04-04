@@ -1,0 +1,7 @@
+name = "lockfile-missing"
+description = "Dependencies exist but Cargo.lock is missing."
+score_min = 82
+score_max = 92
+
+[features]
+lockfile_missing = 1

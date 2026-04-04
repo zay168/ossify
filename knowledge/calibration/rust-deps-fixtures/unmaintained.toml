@@ -1,0 +1,9 @@
+name = "unmaintained"
+description = "Single unmaintained RustSec advisory."
+score_min = 58
+score_max = 75
+cap = 72
+dominant_cap_code = "deps.rust.advisory.unmaintained"
+
+[features]
+advisory_unmaintained = 1

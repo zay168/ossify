@@ -1,0 +1,9 @@
+name = "critical"
+description = "Single critical vulnerability."
+score_min = 18
+score_max = 25
+cap = 25
+dominant_cap_code = "deps.rust.advisory.critical"
+
+[features]
+advisory_critical = 1
