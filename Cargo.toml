@@ -30,7 +30,7 @@ serde_yaml = "0.9.34"
 tar = "0.4.44"
 toml = "0.8.20"
 unicode-width = "0.2.0"
-zip = { version = "2.4.2", default-features = false, features = ["deflate"] }
+zip = { version = "8.5.0", default-features = false, features = ["deflate"] }
 
 [package.metadata.dist]
 cargo-dist-version = "0.31.0"
