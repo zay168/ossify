@@ -31,6 +31,12 @@ If the release meaningfully touches landing or install flow, also verify:
 - Let [`.github/workflows/release.yml`](.github/workflows/release.yml) build archives and checksums.
 - Review the generated GitHub release notes, which are shaped by [`.github/release.yml`](.github/release.yml).
 
+If you need to publish manually from GitHub Actions instead of pushing a tag:
+
+- Run the `Release` workflow with `workflow_dispatch`.
+- Provide a `tag` input like `v0.2.0`.
+- The workflow will build artifacts, create or update the GitHub release for that tag, and attach archives plus `.sha256` files to it.
+
 ## 4. Verify public surfaces
 
 - Check the latest GitHub release page.

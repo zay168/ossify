@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: actions/configure-pages@v6
         with:
@@ -54,7 +54,7 @@ jobs:
           cp docs/install.sh frontend-demo/dist/install.sh
           cp docs/favicon.svg frontend-demo/dist/favicon.svg
 
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: frontend-demo/dist
 
