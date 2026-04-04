@@ -2,12 +2,13 @@
 name = "ossify"
 version = "0.1.0"
 edition = "2021"
+default-run = "ossify"
 authors = ["Open Source Builders"]
 description = "A Rust CLI that audits repository readiness, explains gaps, and scaffolds GitHub-aware open source files."
 license = "MIT"
 readme = "README.md"
 repository = "https://github.com/zay168/ossify"
-homepage = "https://zay168.github.io/ossify/"
+homepage = "https://ossify-react.netlify.app/ossify/"
 keywords = ["cli", "open-source", "github", "repository", "audit"]
 categories = ["command-line-utilities", "development-tools"]
 

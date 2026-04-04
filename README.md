@@ -11,22 +11,32 @@
 
 <p align="center"><code>ossify audit . --interactive</code> <span>&nbsp;&nbsp;->&nbsp;&nbsp;</span> <code>ossify fix . --plan --interactive</code> <span>&nbsp;&nbsp;->&nbsp;&nbsp;</span> <code>ossify fix . --license mit --owner "@acme"</code></p>
 
+<p align="center"><code>ossify plan .</code> <span>&nbsp;&nbsp;or&nbsp;&nbsp;</span> <code>cargo ox-plan -- .</code> <span>&nbsp;&nbsp;for the same planning flow in a shorter form</span></p>
+
 ## Install
 
 Install the latest native binary without Rust:
 
 ```powershell
-irm https://zay168.github.io/ossify/install.ps1 | iex
+irm https://ossify-react.netlify.app/install.ps1 | iex
 ```
 
 ```sh
-curl -fsSL https://zay168.github.io/ossify/install.sh | sh
+curl -fsSL https://ossify-react.netlify.app/install.sh | sh
 ```
 
 The bootstrap installer also installs the managed workflow engine currently used by `ossify doctor workflow` so that GitHub Actions checks work immediately after install.
 If that engine is missing later, `ossify doctor workflow` will try to bootstrap the managed copy automatically before falling back to a warning.
 
-Landing page: [zay168.github.io/ossify](https://zay168.github.io/ossify/)
+For `deps` and `release`, the base install stays lightweight:
+
+- Rust engines bootstrap lazily on first use under `ossify`'s managed tools directory
+- Node engines (`audit-ci`, `release-please`) bootstrap lazily into an `ossify`-owned Node sandbox
+- Python engines (`pip-audit`) bootstrap lazily into an `ossify`-owned virtual environment
+
+If a runtime is missing or a bootstrap step fails, `ossify` keeps the absorbed heuristics active and marks that ecosystem as degraded instead of going dark.
+
+Landing page: [ossify-react.netlify.app/ossify](https://ossify-react.netlify.app/ossify/)
 
 ## Project Status
 
@@ -42,6 +52,7 @@ The project is ready for real repository audits and scaffolding workflows, but i
 - README quality and examples
 - contributor and security docs
 - CI, tests, lint, and release hygiene
+- dependency trust, lock discipline, and policy visibility
 - GitHub-aware files like `CODEOWNERS`, `dependabot.yml`, and release workflows
 
 The goal is simple: turn a vague repo surface into something that looks maintained, legible, and safer to adopt.
@@ -63,6 +74,31 @@ Support is provided on a best-effort basis. The current release line is the prio
 - breaking changes are called out in the changelog and release notes
 - new functionality may ship as experimental when the workflow still needs real-world validation
 - installer, CLI, and output improvements are expected to stay conservative unless a release explicitly says otherwise
+
+## Releases
+
+- release notes are grouped through [`.github/release.yml`](.github/release.yml)
+- the human changelog lives in [`CHANGELOG.md`](CHANGELOG.md)
+- the maintainer checklist for cutting a release lives in [`RELEASING.md`](RELEASING.md)
+- release archives are intended to ship with checksums so the public install surface and GitHub artifacts stay aligned
+
+## V5 Mega Doctor
+
+`ossify` now has a shared doctor engine underneath the CLI.
+
+- `audit` still gives the single maintainer-grade readout
+- focused doctors let you drill into `docs`, `workflow`, `deps`, and `release`
+- `audit` now surfaces domain scores so the broad score is easier to trust
+- dependency and release checks target Rust, Node, and Python from one CLI surface
+
+The guiding principle is reuse, not reinvention: `ossify` absorbs robust policy ideas from mature upstream tools and normalizes them into one report.
+
+Rust dependency advisories now use a finer-grained scoring profile instead of the old blunt `high/critical` shortcut:
+
+- `cargo-deny` advisories are normalized into classes like `critical`, `high`, `medium`, `unmaintained`, `yanked`, and `unsound`
+- the active scoring profile is versioned at `knowledge/calibration/rust-deps-profile.toml`
+- `doctor deps` now reports the advisory class that actually capped the Rust score
+- a maintainer-only calibrator can retune that profile locally from fixtures plus nearby Rust repos without adding any runtime AI or latency
 
 ## V4
 
@@ -90,7 +126,14 @@ V4.2 makes `ossify` feel much more at home in a real terminal workflow.
 ossify audit [path] [--config ossify.toml] [--strict] [--interactive]
 ossify doctor docs [path]
 ossify doctor workflow [path]
+ossify doctor deps [path] [--ecosystem auto|rust|node|python]
+ossify doctor release [path] [--ecosystem auto|rust|node|python]
+ossify docs [path]
+ossify workflow [path]
+ossify deps [path] [--ecosystem auto|rust|node|python]
+ossify release [path] [--ecosystem auto|rust|node|python]
 ossify init [path] [--overwrite] [--license mit|apache-2.0] [--owner "@acme"] [--funding github:acme]
+ossify plan [path] [--interactive] [--overwrite] [--license mit|apache-2.0] [--owner "@acme"] [--funding github:acme] [--config ossify.toml]
 ossify fix [path] [--plan] [--interactive] [--overwrite] [--license mit|apache-2.0] [--owner "@acme"] [--funding github:acme] [--config ossify.toml]
 ossify prompt [path] [--rule readme] [--count 0] [--config ossify.toml]
 ossify version
@@ -112,9 +155,61 @@ Start with the trust-layer audit, then drill into documentation quality when you
 ossify audit .
 ossify doctor docs .
 ossify doctor workflow .
+ossify doctor deps .
+ossify doctor release .
+ossify plan .
 ossify fix . --plan
 ossify prompt .
 ```
+
+## Short local dev commands
+
+For development inside this repo, the long `cargo run --quiet --bin ossify -- ...` form still works, but it is no longer the shortest path.
+
+- `cargo run --quiet -- plan . --no-color`
+  `default-run = "ossify"` removes the need for `--bin ossify`
+- `cargo ox -- plan . --no-color`
+- `cargo ox -- deps --ecosystem rust . --no-color`
+- `cargo ox -- release --ecosystem node . --no-color`
+- `cargo ox-plan --no-color -- .`
+
+The long forms are intentionally still supported; these shortcuts only reduce typing.
+
+`doctor deps` and `doctor release` are now engine-backed first and fall back to absorbed heuristics only when a managed engine cannot run cleanly:
+
+- Rust: managed `cargo-deny`, `release-plz`, `git-cliff`, and `cargo-dist`
+- Node: managed `audit-ci` and `release-please` in an `ossify` sandbox
+- Python: managed `pip-audit` and `release-please`-style release checks, with Python engines installed into an `ossify` sandbox
+
+The reuse map for those upstreams lives under [`knowledge/upstreams`](knowledge/upstreams), and substantive upstream reuse is tracked in [`ATTRIBUTION.md`](ATTRIBUTION.md).
+
+## Rust deps calibration
+
+Rust dependency scoring is deliberately calibratable without shipping any online learning path in the CLI.
+
+- active profile: [`knowledge/calibration/rust-deps-profile.toml`](knowledge/calibration/rust-deps-profile.toml)
+- calibration fixtures: [`knowledge/calibration/rust-deps-fixtures`](knowledge/calibration/rust-deps-fixtures)
+- maintainer tool: `cargo run --bin ossify-calibrate -- --max-repos 12`
+
+The calibrator:
+
+- reuses `ossify doctor deps --ecosystem rust` as the feature extraction path
+- caches extracted Rust repo features under `target/calibration/rust-deps/cache.json`
+- optimizes integer weights and caps deterministically
+- writes a Markdown report plus a tuned profile under `target/calibration/rust-deps/`
+
+This is a maintainer workflow, not a public end-user command surface.
+
+## Managed Engine Troubleshooting
+
+- Offline or flaky network:
+  `ossify` may fall back to heuristics if it cannot bootstrap a managed engine on first use.
+- Missing runtimes:
+  Node-backed engines need `node` and `npm`; Python-backed engines need Python 3; Rust-backed engines need `cargo` if the managed binary is not already present.
+- Bootstrap failures:
+  rerun the command once network access is healthy, or preinstall the relevant engine and point `OSSIFY_<ENGINE>` at it.
+- Degraded mode:
+  when you see `runtime-missing`, `bootstrap-failed`, `execution-failed`, or `parse-failed`, the report is still useful, but it is no longer the highest-confidence path for that ecosystem.
 
 ## Example
 
@@ -253,3 +348,5 @@ Bug reports, feature requests, and usage questions are welcome through the publi
 Release history and breaking-change notes live in:
 
 - [CHANGELOG.md](CHANGELOG.md)
+- [ATTRIBUTION.md](ATTRIBUTION.md)
+- [knowledge/upstreams/README.md](knowledge/upstreams/README.md)
