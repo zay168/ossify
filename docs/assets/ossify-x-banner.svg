@@ -1,0 +1,47 @@
+<svg width="1500" height="500" viewBox="0 0 1500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1500" y2="500" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#111B30"/>
+      <stop offset="1" stop-color="#0A1220"/>
+    </linearGradient>
+    <radialGradient id="leftGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(250 360) rotate(12) scale(340 220)">
+      <stop stop-color="#7DD3FC" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#7DD3FC" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="rightGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(1270 120) rotate(180) scale(280 180)">
+      <stop stop-color="#F4BF72" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#F4BF72" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="tileFill" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#9BE7FF"/>
+      <stop offset="0.55" stop-color="#E7E1B9"/>
+      <stop offset="1" stop-color="#F4BF72"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1500" height="500" fill="#0A1220"/>
+  <rect width="1500" height="500" fill="url(#bg)"/>
+  <rect width="1500" height="500" fill="url(#leftGlow)"/>
+  <rect width="1500" height="500" fill="url(#rightGlow)"/>
+
+  <g transform="translate(88 60)">
+    <rect x="0" y="0" width="42" height="42" rx="12" fill="#152037" stroke="#FFFFFF" stroke-opacity="0.1"/>
+    <rect x="8" y="8" width="11" height="11" rx="3.5" fill="url(#tileFill)"/>
+    <rect x="23" y="8" width="11" height="11" rx="3.5" fill="url(#tileFill)"/>
+    <rect x="8" y="23" width="11" height="11" rx="3.5" fill="url(#tileFill)"/>
+    <rect x="23" y="23" width="11" height="11" rx="3.5" fill="url(#tileFill)"/>
+    <text x="60" y="28" fill="#F5F7FB" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="23" font-weight="700" letter-spacing="0.32em">OSSIFY</text>
+  </g>
+
+  <text x="420" y="96" fill="#7DD3FC" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="18" font-weight="700" letter-spacing="0.28em">REPOSITORY TRUST ENGINE</text>
+
+  <text x="420" y="232" fill="#F5F7FB" font-family="Georgia, Times New Roman, serif" font-size="74" font-weight="700">Audit the trust layer</text>
+  <text x="420" y="308" fill="#F5F7FB" font-family="Georgia, Times New Roman, serif" font-size="74" font-weight="700">around your repo.</text>
+
+  <text x="420" y="374" fill="#B7C3D8" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="25" font-weight="500">
+    README, metadata, workflows, release hygiene, and safe fix plans.
+  </text>
+  <text x="420" y="408" fill="#B7C3D8" font-family="Inter, Segoe UI, Arial, sans-serif" font-size="25" font-weight="500">
+    The signals that make a project feel maintained before anyone reads the code deeply.
+  </text>
+</svg>

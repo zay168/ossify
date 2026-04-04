@@ -10,3 +10,4 @@ frontend-demo/.netlify/
 frontend-demo/*.tsbuildinfo
 frontend-demo/vite.config.js
 frontend-demo/vite.config.d.ts
+docs/launch/generated/
