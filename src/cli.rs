@@ -185,10 +185,10 @@ impl ColorChoice {
 }
 
 impl ParsedArgs {
-    pub fn parse() -> Result<Self, String> {
+    pub fn parse() -> Result<Self, clap::Error> {
         let raw = env::args().collect::<Vec<String>>();
         let prepared = prepare_default_command(raw);
-        Self::try_parse_from(prepared).map_err(|error| error.to_string())
+        Self::try_parse_from(prepared)
     }
 
     pub fn try_parse_from<I, T>(itr: I) -> Result<Self, clap::Error>
@@ -443,5 +443,12 @@ mod tests {
             }
             _ => panic!("expected deps command"),
         }
+    }
+
+    #[test]
+    fn version_flag_preserves_clap_exit_semantics() {
+        let error = ParsedArgs::try_parse_from(["ossify", "--version"]).expect_err("version flag");
+        assert_eq!(error.kind(), clap::error::ErrorKind::DisplayVersion);
+        assert_eq!(error.exit_code(), 0);
     }
 }

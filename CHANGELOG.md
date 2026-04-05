@@ -6,6 +6,12 @@ The project intends to follow SemVer. Breaking changes and experimental areas sh
 
 ## Unreleased
 
+## 0.2.2 - 2026-04-05
+
+### Changed
+
+- `ossify --version` now preserves Clap's native exit semantics and returns success instead of an erroneous exit code `2`.
+
 ## 0.2.1 - 2026-04-05
 
 ### Changed

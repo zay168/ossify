@@ -20,9 +20,10 @@ use ossify::report::{
 fn main() -> ExitCode {
     let args = match ParsedArgs::parse() {
         Ok(args) => args,
-        Err(message) => {
-            eprintln!("{message}");
-            return ExitCode::from(2);
+        Err(error) => {
+            let exit_code = error.exit_code();
+            let _ = error.print();
+            return ExitCode::from(exit_code.clamp(0, u8::MAX as i32) as u8);
         }
     };
     let output = OutputOptions {
