@@ -114,7 +114,7 @@ pub fn print_docs_doctor_report(
 ) -> io::Result<()> {
     match options.format {
         OutputFormat::Human => {
-            println!("{}", render_docs_doctor_human(report));
+            println!("{}", render_docs_doctor_human(report, options.color));
             Ok(())
         }
         OutputFormat::Json => {
@@ -270,24 +270,30 @@ fn render_docs_doctor_json(report: &DocsDoctorReport) -> String {
     .unwrap_or_else(|_| String::from("{}"))
 }
 
-fn render_docs_doctor_human(report: &DocsDoctorReport) -> String {
-    let mut lines = vec![
-        String::from("OSSIFY DOCS DOCTOR"),
-        format!("Target: {}", report.target.display()),
-        format!("Score: {}/100", report.score),
-        format!("Markdown files scanned: {}", report.markdown_files),
-        format!("Local links checked: {}", report.local_links_checked),
-        format!("Summary: {}", report.summary()),
-    ];
+fn render_docs_doctor_human(report: &DocsDoctorReport, color: bool) -> String {
+    let style = ReportStyle::new(color);
+    let width = current_terminal_width();
+
+    let header = format!(
+        "{}  {}  {}  {}  {}  {}",
+        style.badge("OSSIFY DOCS DOCTOR", 96, true),
+        style.score(Some(report.score)),
+        style.muted(&format!("{} files", report.markdown_files)),
+        style.muted(&format!("{} links", report.local_links_checked)),
+        format_severity_counts(
+            &style,
+            report.warning_count(),
+            report.info_count(),
+            report.error_count(),
+        ),
+        style.muted(&report.summary()),
+    );
 
     if report.findings.is_empty() {
-        lines.push(String::new());
-        lines.push(String::from("No documentation findings."));
-        return lines.join("\n");
+        return format!("{}\n\n{}", header, style.good("No documentation findings."));
     }
 
-    lines.push(String::new());
-    lines.push(String::from("Findings"));
+    let mut lines = vec![header, String::new(), style.section("Findings")];
     for finding in &report.findings {
         let location = finding
             .file
@@ -299,17 +305,24 @@ fn render_docs_doctor_human(report: &DocsDoctorReport) -> String {
                     .to_string()
             })
             .unwrap_or_else(|| String::from("."));
-        lines.push(format!(
-            "[{}] {} | {}",
-            finding.severity.label(),
-            location,
-            finding.message
+        lines.extend(wrap_prefixed(
+            &format!(
+                "{}  {}  {}",
+                style.dot(finding.severity),
+                style.file(&location),
+                finding.message
+            ),
+            "  ",
+            width,
         ));
         if let Some(help) = &finding.help {
-            lines.push(format!("  -> {help}"));
+            lines.extend(wrap_prefixed(
+                &format!("{} {}", style.muted("→"), help),
+                "    ",
+                width,
+            ));
         }
     }
-
     lines.join("\n")
 }
 
@@ -335,37 +348,24 @@ fn render_workflow_doctor_human(report: &WorkflowDoctorReport, color: bool) -> S
     let style = ReportStyle::new(color);
     let width = current_terminal_width();
     let mut lines = vec![
-        style.badge("OSSIFY WORKFLOW DOCTOR", 96, true),
         format!(
-            "{}  {}  {}  {}  {}  {}",
-            style.label("score"),
+            "{}  {}  {}  {}  {}",
+            style.badge("OSSIFY WORKFLOW DOCTOR", 96, true),
             style.score(report.score),
-            style.label("workflows"),
-            report.workflow_files,
-            style.label("engine"),
+            style.muted(&format!("{} workflows", report.workflow_files)),
             if report.engine_available {
                 style.good(&report.engine)
             } else {
                 style.bad(&report.engine)
-            }
-        ),
-        format!("{} {}", style.label("target"), report.target.display()),
-        format!(
-            "{} {}  {}  {}",
-            style.label("summary"),
-            report.summary(),
+            },
             format_severity_counts(
                 &style,
                 report.warning_count(),
                 report.info_count(),
                 report.error_count()
             ),
-            if report.engine_available {
-                style.muted("actionlint + ossify")
-            } else {
-                style.muted("bootstrap pending")
-            }
         ),
+        style.muted(&report.summary()),
     ];
 
     if report.findings.is_empty() {
@@ -512,21 +512,12 @@ fn render_multi_domain_doctor_human(
     };
 
     let mut lines = vec![
-        style.badge(title, 96, true),
         format!(
-            "{}  {}  {}  {}  {}  {}",
-            style.label("score"),
+            "{}  {}  {}  {}  {}",
+            style.badge(title, 96, true),
             style.score(score),
-            style.label("ecosystems"),
-            ecosystem_summary,
-            style.label("engine"),
-            style.muted(engine)
-        ),
-        format!("{} {}", style.label("target"), target.display()),
-        format!(
-            "{} {}  {}  {}",
-            style.label("summary"),
-            summary,
+            style.muted(&ecosystem_summary),
+            style.muted(engine),
             format_severity_counts(
                 &style,
                 findings
@@ -542,8 +533,8 @@ fn render_multi_domain_doctor_human(
                     .filter(|finding| finding.severity == DoctorSeverity::Error)
                     .count()
             ),
-            style.muted(&format!("{} policy blend", doctor_label))
         ),
+        style.muted(summary),
     ];
     let dominant_cap_reason = ecosystems
         .iter()
@@ -551,7 +542,7 @@ fn render_multi_domain_doctor_human(
         .min_by_key(|(cap, _)| cap.unwrap_or(u8::MAX))
         .map(|(_, reason)| reason.clone());
     if let Some(reason) = dominant_cap_reason {
-        lines.push(format!("{} {}", style.label("cap"), reason));
+        lines.push(format!("{}  {}", style.warn("cap"), reason));
     }
 
     if !ecosystems.is_empty() {
@@ -1007,10 +998,6 @@ impl ReportStyle {
             color.to_string()
         };
         self.paint(&code, text)
-    }
-
-    fn label(&self, text: &str) -> String {
-        self.paint("90", text)
     }
 
     fn section(&self, text: &str) -> String {

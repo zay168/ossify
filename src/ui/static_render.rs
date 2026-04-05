@@ -12,6 +12,17 @@ const DEFAULT_WIDTH: usize = 100;
 const TERMINAL_EDGE_GUTTER: usize = 1;
 const CATEGORY_BAR_WIDTH: usize = 18;
 
+/// Remove the Windows extended-length path prefix (`\\?\`) wherever it appears.
+fn clean_path(raw: &str) -> String {
+    raw.replace(r"\\?\", "")
+}
+
+/// Replace the absolute target directory prefix with a relative filename.
+///
+/// "project manifest exists: Detected manifest at C:\path\Cargo.toml"
+/// → "project manifest exists: Detected manifest at Cargo.toml"
+
+#[allow(clippy::empty_line_after_doc_comments)]
 pub fn render_audit(model: &UiReport, color: bool) -> String {
     render_ui_report(model, color, current_terminal_width())
 }
@@ -202,7 +213,7 @@ pub fn render_ui_report(model: &UiReport, color: bool, width: usize) -> String {
     let domain_lines = model
         .domains
         .iter()
-        .map(|domain| render_domain_line(domain, domain_label_width))
+        .flat_map(|domain| render_domain_lines(domain, domain_label_width))
         .collect::<Vec<_>>();
     let strengths = top_strengths(model);
     let gaps = top_gaps(model);
@@ -288,49 +299,47 @@ pub fn render_ui_report(model: &UiReport, color: bool, width: usize) -> String {
 
 fn render_hero(model: &UiReport, style: &Style, width: usize) -> String {
     let current = &model.current;
-    let mut lines = vec![
-        format!(
-            "Project: {} ({})",
-            model.project_name, model.project_summary
-        ),
-        format!("Target: {}", model.target),
-    ];
+    // Strip the manifest path from the project summary ("Rust cli via /path" → "Rust cli")
+    let raw_summary = clean_path(&model.project_summary);
+    let summary = raw_summary.split(" via ").next().unwrap_or(&raw_summary);
+    let mut lines = vec![format!("{}  ·  {}", model.project_name, summary)];
     if let Some(previous) = model.previous {
         let delta = current.score as i16 - previous.score as i16;
         let label = if model.mode == UiMode::Plan {
-            "Estimated"
+            "estimated"
         } else {
-            "Current"
+            "score"
         };
         lines.push(format!(
-            "{} score: {} -> {} ({:+})",
-            label,
+            "{}  {}  →  {}  ({:+})",
+            style.dim(label),
             style.score(previous.score),
             style.score(current.score),
             delta
         ));
         lines.push(format!(
-            "Tier: {} -> {}",
+            "{}  {}  →  {}",
+            style.dim("tier"),
             style.tier(previous.readiness),
             style.tier(current.readiness)
         ));
     } else {
         lines.push(format!(
-            "Score: {}   Tier: {}",
+            "{}  {}   {}  {}   {}  {}  (≥{})",
+            style.dim("score"),
             style.score(current.score),
-            style.tier(current.readiness)
+            style.dim("tier"),
+            style.tier(current.readiness),
+            style.dim("strict"),
+            if current.strict_passed {
+                style.good("pass")
+            } else {
+                style.bad("fail")
+            },
+            current.minimum_score
         ));
     }
-    lines.push(format!(
-        "Strict target: {} (minimum {})",
-        if current.strict_passed {
-            style.good("pass")
-        } else {
-            style.bad("fail")
-        },
-        current.minimum_score
-    ));
-    lines.push(format!("Readiness meter: {}", meter(current.score, 30)));
+    lines.push(meter(current.score, 30));
 
     box_section(
         width,
@@ -361,15 +370,17 @@ fn top_strengths(model: &UiReport) -> Vec<String> {
         })
         .collect::<Vec<_>>();
     checks.sort_by_key(|check| std::cmp::Reverse(check.coverage));
+    let label_w = checks
+        .iter()
+        .map(|c| display_width(&c.label))
+        .max()
+        .unwrap_or(0);
     checks
         .into_iter()
         .take(4)
         .map(|check| {
-            let proof = check
-                .strongest_proof
-                .clone()
-                .unwrap_or_else(|| check.message.clone());
-            format!("{} | {} ({}%)", check.label, proof, check.coverage)
+            let label = pad_to_width(&check.label, label_w);
+            format!("{}  {}%", label, check.coverage)
         })
         .collect()
 }
@@ -377,7 +388,7 @@ fn top_strengths(model: &UiReport) -> Vec<String> {
 fn render_category_line(category: &super::model::UiCategoryScore, label_width: usize) -> String {
     let label = pad_to_width(category.label, label_width);
     format!(
-        "{} |[{}]| {:>3}% ({}/{})",
+        "{}  {}  {:>3}%  {}/{}",
         label,
         meter(category.score, CATEGORY_BAR_WIDTH),
         category.score,
@@ -386,22 +397,24 @@ fn render_category_line(category: &super::model::UiCategoryScore, label_width: u
     )
 }
 
-fn render_domain_line(domain: &super::model::UiDomainScore, label_width: usize) -> String {
+fn render_domain_lines(domain: &super::model::UiDomainScore, label_width: usize) -> Vec<String> {
     let label = pad_to_width(domain.label, label_width);
     let score = domain
         .score
         .map(|value| format!("{value:>3}%"))
         .unwrap_or_else(|| String::from(" n/a"));
-    let cap = domain
+    let cap_tag = domain
         .cap
-        .map(|value| format!(" cap {value:>2}"))
+        .map(|value| format!("  cap {value:>3}"))
         .unwrap_or_default();
-    let summary = domain
-        .cap_reason
-        .as_deref()
-        .map(|reason| format!("{} ({reason})", domain.summary))
-        .unwrap_or_else(|| domain.summary.clone());
-    format!("{label} | {score}{cap} | {} | {}", domain.engine, summary)
+    // Score + cap only — no engine/summary so this line never wraps.
+    // wrap_text splits on whitespace and collapses spaces, which would
+    // break column alignment for longer engine strings.
+    let mut result = vec![format!("{}  {}{}", label, score, cap_tag)];
+    if let Some(reason) = &domain.cap_reason {
+        result.push(format!("  cap  {}", compact_cap_reason(reason)));
+    }
+    result
 }
 
 fn top_gaps(model: &UiReport) -> Vec<String> {
@@ -606,6 +619,36 @@ fn join_columns(
     out.join("\n")
 }
 
+/// Condense a cap reason into a short, scannable string.
+///
+/// "unmaintained advisory RUSTSEC-2024-0436 for paste 1.0.15 capped …"
+/// → "RUSTSEC-2024-0436 · paste 1.0.15"
+fn compact_cap_reason(reason: &str) -> String {
+    let words: Vec<&str> = reason.split_whitespace().collect();
+    let advisory = words
+        .iter()
+        .find(|w| w.starts_with("RUSTSEC-") || w.starts_with("CVE-") || w.starts_with("GHSA-"))
+        .copied();
+    let for_idx = words.iter().position(|w| *w == "for");
+    match (advisory, for_idx) {
+        (Some(id), Some(i)) if i + 2 < words.len() => {
+            format!("{id}  ·  {} {}", words[i + 1], words[i + 2])
+        }
+        (Some(id), Some(i)) if i + 1 < words.len() => {
+            format!("{id}  ·  {}", words[i + 1])
+        }
+        (Some(id), _) => id.to_owned(),
+        _ => {
+            let joined = words.join(" ");
+            if joined.len() > 50 {
+                format!("{}…", &joined[..47])
+            } else {
+                joined
+            }
+        }
+    }
+}
+
 fn meter(score: u8, width: usize) -> String {
     let width = width.max(1);
     let filled = ((score as usize * width) + 50) / 100;
@@ -786,6 +829,10 @@ impl Style {
         self.paint("92", text)
     }
 
+    fn dim(&self, text: &str) -> String {
+        self.paint("90", text)
+    }
+
     fn accent(&self, text: &str) -> String {
         self.paint("96", text)
     }
@@ -890,7 +937,7 @@ mod tests {
                     || line.contains("automation")
                     || line.contains("release")
             })
-            .filter_map(|line| line.find("|["))
+            .filter_map(|line| line.find('█').or_else(|| line.find('░')))
             .collect::<Vec<_>>();
 
         assert_eq!(positions.len(), 5);

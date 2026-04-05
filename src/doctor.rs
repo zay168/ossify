@@ -925,7 +925,7 @@ pub fn doctor_deps(
             cap: None,
             cap_reason: None,
             cap_code: None,
-            engine: String::from("cargo-deny + audit-ci + pip-audit semantics"),
+            engine: String::from("ossify deps policy"),
             engine_source: EngineSource::AbsorbedPolicy,
             ecosystems: Vec::new(),
             error_count: 0,
@@ -989,7 +989,18 @@ pub fn doctor_deps(
             .filter_map(|entry| entry.cap_code.as_ref().map(|code| (entry.cap, code)))
             .min_by_key(|(cap, _)| cap.unwrap_or(u8::MAX))
             .map(|(_, code)| code.clone()),
-        engine: String::from("cargo-deny + audit-ci + pip-audit semantics"),
+        engine: {
+            // Derive from the engines that were actually active, not a fixed list.
+            let mut seen = std::collections::BTreeSet::new();
+            for entry in &ecosystem_scores {
+                seen.insert(entry.engine.clone());
+            }
+            if seen.is_empty() {
+                String::from("ossify deps policy")
+            } else {
+                seen.into_iter().collect::<Vec<_>>().join(" + ")
+            }
+        },
         engine_source: aggregate_engine_source(&ecosystem_scores),
         ecosystems: ecosystem_scores
             .iter()
