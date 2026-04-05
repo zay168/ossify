@@ -201,7 +201,7 @@ pub fn render_ui_report(model: &UiReport, color: bool, width: usize) -> String {
     let category_lines = model
         .categories
         .iter()
-        .map(|category| render_category_line(category, category_label_width))
+        .map(|category| render_category_line(category, category_label_width, &style))
         .collect::<Vec<_>>();
     let domain_label_width = model
         .domains
@@ -213,13 +213,17 @@ pub fn render_ui_report(model: &UiReport, color: bool, width: usize) -> String {
     let domain_lines = model
         .domains
         .iter()
-        .flat_map(|domain| render_domain_lines(domain, domain_label_width))
+        .flat_map(|domain| render_domain_lines(domain, domain_label_width, &style))
         .collect::<Vec<_>>();
-    let strengths = top_strengths(model);
+    let strengths = top_strengths(model, &style);
     let gaps = top_gaps(model);
     let diagnostics = top_diagnostics(model);
     let files = file_sections(model, &style);
-    let next_moves = model.next_moves.clone();
+    let next_moves = model
+        .next_moves
+        .iter()
+        .map(|cmd| style.accent(cmd))
+        .collect::<Vec<_>>();
 
     if !wide {
         let mut parts = vec![hero];
@@ -339,7 +343,7 @@ fn render_hero(model: &UiReport, style: &Style, width: usize) -> String {
             current.minimum_score
         ));
     }
-    lines.push(meter(current.score, 30));
+    lines.push(style.colored_meter(current.score, 30));
 
     box_section(
         width,
@@ -348,7 +352,7 @@ fn render_hero(model: &UiReport, style: &Style, width: usize) -> String {
     )
 }
 
-fn top_strengths(model: &UiReport) -> Vec<String> {
+fn top_strengths(model: &UiReport, style: &Style) -> Vec<String> {
     let mut checks = model
         .checks
         .iter()
@@ -380,29 +384,59 @@ fn top_strengths(model: &UiReport) -> Vec<String> {
         .take(4)
         .map(|check| {
             let label = pad_to_width(&check.label, label_w);
-            format!("{}  {}%", label, check.coverage)
+            let pct = format!("{}%", check.coverage);
+            let colored_pct = if check.coverage >= 85 {
+                style.good(&pct)
+            } else if check.coverage >= 60 {
+                style.warn(&pct)
+            } else {
+                style.bad(&pct)
+            };
+            format!("{}  {}", label, colored_pct)
         })
         .collect()
 }
 
-fn render_category_line(category: &super::model::UiCategoryScore, label_width: usize) -> String {
+fn render_category_line(
+    category: &super::model::UiCategoryScore,
+    label_width: usize,
+    style: &Style,
+) -> String {
     let label = pad_to_width(category.label, label_width);
+    let pct = format!("{:>3}%", category.score);
+    let colored_pct = if category.score >= 85 {
+        style.good(&pct)
+    } else if category.score >= 60 {
+        style.warn(&pct)
+    } else {
+        style.bad(&pct)
+    };
     format!(
-        "{}  {}  {:>3}%  {}/{}",
+        "{}  {}  {}  {}/{}",
         label,
-        meter(category.score, CATEGORY_BAR_WIDTH),
-        category.score,
+        style.colored_meter(category.score, CATEGORY_BAR_WIDTH),
+        colored_pct,
         category.earned,
         category.total
     )
 }
 
-fn render_domain_lines(domain: &super::model::UiDomainScore, label_width: usize) -> Vec<String> {
+fn render_domain_lines(
+    domain: &super::model::UiDomainScore,
+    label_width: usize,
+    style: &Style,
+) -> Vec<String> {
     let label = pad_to_width(domain.label, label_width);
-    let score = domain
+    let score_str = domain
         .score
         .map(|value| format!("{value:>3}%"))
         .unwrap_or_else(|| String::from(" n/a"));
+    let colored_score = match domain.score {
+        Some(v) if v >= 85 => style.good(&score_str),
+        Some(v) if v >= 60 => style.warn(&score_str),
+        Some(_) => style.bad(&score_str),
+        None => style.dim(&score_str),
+    };
     let cap_tag = domain
         .cap
         .map(|value| format!("  cap {value:>3}"))
@@ -410,9 +444,10 @@ fn render_domain_lines(domain: &super::model::UiDomainScore, label_width: usize)
     // Score + cap only — no engine/summary so this line never wraps.
     // wrap_text splits on whitespace and collapses spaces, which would
     // break column alignment for longer engine strings.
-    let mut result = vec![format!("{}  {}{}", label, score, cap_tag)];
+    let mut result = vec![format!("{}  {}{}", label, colored_score, cap_tag)];
     if let Some(reason) = &domain.cap_reason {
-        result.push(format!("  cap  {}", compact_cap_reason(reason)));
+        let advisory = compact_cap_reason(reason);
+        result.push(format!("  cap  {}", style.warn(&advisory)));
     }
     result
 }
@@ -649,12 +684,6 @@ fn compact_cap_reason(reason: &str) -> String {
     }
 }
 
-fn meter(score: u8, width: usize) -> String {
-    let width = width.max(1);
-    let filled = ((score as usize * width) + 50) / 100;
-    format!("{}{}", "█".repeat(filled), "░".repeat(width - filled))
-}
-
 fn wrap_text(input: &str, width: usize) -> Vec<String> {
     if width == 0 {
         return vec![String::new()];
@@ -863,6 +892,30 @@ impl Style {
         }
     }
 
+    fn colored_meter(&self, score: u8, width: usize) -> String {
+        let width = width.max(1);
+        let filled = ((score as usize * width) + 50) / 100;
+        let empty = width - filled;
+        let color = if score >= 85 {
+            "92"
+        } else if score >= 60 {
+            "93"
+        } else {
+            "91"
+        };
+        let filled_part = if filled > 0 {
+            self.paint(color, &"█".repeat(filled))
+        } else {
+            String::new()
+        };
+        let empty_part = if empty > 0 {
+            self.paint("90", &"░".repeat(empty))
+        } else {
+            String::new()
+        };
+        format!("{filled_part}{empty_part}")
+    }
+
     fn paint(&self, code: &str, text: &str) -> String {
         if self.enabled {
             format!("\u{1b}[{code}m{text}\u{1b}[0m")
@@ -953,7 +1006,7 @@ mod tests {
     #[test]
     fn optional_funding_does_not_show_up_in_top_strengths() {
         let model = sample_audit_model();
-        let strengths = top_strengths(&model);
+        let strengths = top_strengths(&model, &Style::new(false));
         assert!(!strengths.iter().any(|line| line.contains("Funding file")));
     }
 

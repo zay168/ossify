@@ -6,6 +6,12 @@ The project intends to follow SemVer. Breaking changes and experimental areas sh
 
 ## Unreleased
 
+## 0.2.1 - 2026-04-05
+
+### Changed
+
+- terminal audit output now uses severity-aware color for score bars, category/domain percentages, advisory cap callouts, and next-step commands while preserving clean `--no-color` rendering.
+
 ## 0.2.0 - 2026-04-04
 
 ### Added
