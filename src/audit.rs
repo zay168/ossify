@@ -13,6 +13,7 @@ use crate::intel::{
     ConfidenceBreakdown, ContextRef, HistoryRef, ProofItem, RetrievalScope, RootCause,
 };
 use crate::project::{detect_project, ProjectContext, ProjectKind, RepoProfile};
+use crate::trust::{aggregate_trust_score, TrustKernelConfig};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -621,28 +622,7 @@ fn readiness_tier(score: u8) -> ReadinessTier {
 }
 
 fn aggregate_audit_score(base_score: u8, domain_scores: &[DoctorDomainScore]) -> u8 {
-    let scored = domain_scores
-        .iter()
-        .filter_map(|entry| entry.score.map(|score| (score, entry.cap)))
-        .collect::<Vec<_>>();
-    if scored.is_empty() {
-        return base_score;
-    }
-
-    let average_gap = scored
-        .iter()
-        .map(|(score, _)| u16::from(base_score.saturating_sub(*score)))
-        .sum::<u16>()
-        / scored.len() as u16;
-    let mut blended = u16::from(base_score).saturating_sub(average_gap / 2);
-
-    for (_, cap) in scored {
-        if let Some(cap) = cap {
-            blended = blended.min(u16::from(cap));
-        }
-    }
-
-    blended as u8
+    aggregate_trust_score(base_score, domain_scores, TrustKernelConfig::default())
 }
 
 fn ensure_directory(path: &Path) -> io::Result<()> {
