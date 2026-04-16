@@ -12,3 +12,5 @@ pub mod report;
 pub mod rust_deps;
 pub mod templates;
 pub mod ui;
+
+pub mod trust;
